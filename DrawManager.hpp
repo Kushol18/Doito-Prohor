@@ -9,7 +9,7 @@ static GameObject objects[MAX_OBJECTS];
 static int objectCount = 0;
 
 // Creates an object and returns its direct memory address
-inline GameObject* createObject(ObjectType type, double x, double y, int imgIndex, int width, int height) {
+inline GameObject* createObject(ObjectType type, double x, double y, int imgIndex, int width, int height, double collisionHeight) {
     if (objectCount < MAX_OBJECTS) {
         objects[objectCount].id = type;
         objects[objectCount].x = x;
@@ -17,12 +17,22 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
         objects[objectCount].imgIndex = imgIndex;
         objects[objectCount].width = width;
         objects[objectCount].height = height;
+        objects[objectCount].collisionHeight = collisionHeight;
         
         int currentIndex = objectCount;
         objectCount++;
         return &objects[currentIndex]; 
     }
     return 0;
+}
+
+// Retrieves the total object array reference for collision checks
+inline GameObject* getAllObjects() {
+    return objects;
+}
+
+inline int getObjectCount() {
+    return objectCount;
 }
 
 // Fills an external array with sorted pointers based strictly on the Y coordinate

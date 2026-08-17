@@ -1,5 +1,6 @@
 #include "iGraphics.h"
 #include "DrawManager.hpp"
+#include "CollisionManager.hpp"
 
 
 // Stored pointers for direct reference to specific objects
@@ -146,50 +147,58 @@ void iMouse(int button, int state, int mx, int my) {
 
 void fixedUpdate() {
 	if(player1 != 0){
-		//player 1 right
+		double nextX = player1->x;
+		double nextY = player1->y;
+
 		if ( isKeyPressed('d')){
 			player1->imgIndex = iLoadImage("Image//P1R.png");
-			player1->x+=speed;
+			nextX += speed; //player 1 right
 		}
-		//player 1 up
 		if (isKeyPressed('w')){
 			player1->imgIndex = iLoadImage("Image//P1B.png");
-			player1->y+=speed;
+			nextY += speed; //player 1 up
 		}
-		//player 1 left
 		if (isKeyPressed('a')){
 			player1->imgIndex = iLoadImage("Image//P1L.png");
-			player1->x-=speed;
+			nextX -= speed; //player 1 left
 		}
-		//player 1 down
 		if (isKeyPressed('s')){
 			player1->imgIndex = iLoadImage("Image//P1F.png");
-			player1->y-=speed;
+			nextY -= speed; //player 1 down
 		}
+		// if no collision then update the x & y values
+		if (!checkCollision(player1, nextX, nextY)) {
+            player1->x = nextX;
+            player1->y = nextY;
+        }
 	}
 
 	
 	if(player2 != 0){
-		//player 2 right
+		double nextX = player2->x;
+		double nextY = player2->y;
+
 		if (isSpecialKeyPressed(GLUT_KEY_RIGHT)){
 			player2->imgIndex = iLoadImage("Image//P2F.png");
-			player2->x+=speed;
+			nextX += speed; //player 2 right
 		}
-		//player 2 up
 		if (isSpecialKeyPressed(GLUT_KEY_UP)){
 			player2->imgIndex = iLoadImage("Image//P2F.png");
-			player2->y+=speed;
+			nextY += speed; //player 2 up
 		}
-		//player 2 left
 		if (isSpecialKeyPressed(GLUT_KEY_LEFT)){
 			player2->imgIndex = iLoadImage("Image//P2F.png");
-			player2->x-=speed;
+			nextX -= speed; //player 2 left
 		}
-		//player 2 down
 		if (isSpecialKeyPressed(GLUT_KEY_DOWN)){
 			player2->imgIndex = iLoadImage("Image//P2F.png");
-			player2->y-=speed;
+			nextY -= speed; //player 2 down
 		}
+		// if no collision then update the x & y values
+		if (!checkCollision(player2, nextX, nextY)) {
+            player2->x = nextX;
+            player2->y = nextY;
+        }
 	}
 
 
@@ -230,8 +239,8 @@ int main(){
 	
 	//initialization
 	//player 1 & 2
-	player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48);
-	player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 38, 64);
+	player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48, 10);
+	player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 38, 64, 10);
 
 			
 	iStart();

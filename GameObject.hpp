@@ -15,6 +15,7 @@ struct GameObject {
     double x, y;
 	int imgIndex;
     double width, height;
+	double collisionHeight;
 };
 
 
