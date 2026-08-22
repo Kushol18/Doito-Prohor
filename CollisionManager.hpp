@@ -24,6 +24,9 @@ inline bool checkCollision(GameObject* self, double targetX, double targetY) {
         // If the other object has no collision height, skip it
         if (other->collisionHeight <= 0) continue;
 
+		// If it is an effect object & it is not active, skip it
+		if (other->id == OBJ_EFFECT && !other->isActivated) continue;
+
         // Calculate the other object's collision box (from base Y up to collisionHeight)
         double otherLeft = other->x;
         double otherRight = other->x + other->width;
