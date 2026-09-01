@@ -2,6 +2,7 @@
 #include "DrawManager.hpp"
 #include "CollisionManager.hpp"
 #include "TemporalCoupling.hpp"
+#include "MainMenu.hpp"
 
 
 // Stored pointers for direct reference to specific objects
@@ -30,7 +31,7 @@ int imgT, imgL1, imgL2, imgR1, imgR2;
 	Quest player1Quest[5], player2Quest[5];
 
 	
-int gameState = 1; //Menu -> 0, Play -> 1, Story -> 2, Controls -> 3, Settings -> 4, Quit -> 5
+int gameState = 0; //Main Menu -> 0, Play -> 1, Story -> 2, Leaderboard -> 3, Options -> 4, Credits -> 5
 int screenWidth = 1920, screenHeight = 980;
 double speed = 5.0;
 int offset = 5;
@@ -78,6 +79,12 @@ void questLoader(){
 void iDraw(){
 	
 	iClear();
+
+	if (DoitoProhorMenu::isMenuState(gameState))
+	{
+		DoitoProhorMenu::draw(gameState, screenWidth, screenHeight);
+		return;
+	}
 
 	//Title
 	iShowImage(460, 770, 1000, 200, imgT);
@@ -151,6 +158,11 @@ void iMouse(int button, int state, int mx, int my) {
 	
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 
+		if (DoitoProhorMenu::isMenuState(gameState))
+		{
+			DoitoProhorMenu::handleClick(gameState, mx, my);
+			return;
+		}
 		
 	}
 	
@@ -240,6 +252,7 @@ void fixedUpdate() {
 int main(){
 	iInitialize(screenWidth, screenHeight, "Doito Prohor : The Time that Steals");
 	
+	DoitoProhorMenu::initialize();
 
 	//1. Image
 	//title
