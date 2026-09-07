@@ -1,9 +1,8 @@
 #ifndef TEMPORAL_COUPLING_HPP
-#ifndef DRAW_MANAGER_HPP
-#include "DrawManager.hpp"
-#endif
-
 #define TEMPORAL_COUPLING_HPP
+
+#include "GameObject.hpp"
+
 
 inline void triggerRemoteEffect(GameObject* player, double interactionDistance) {
     GameObject* allObjects = getAllObjects();

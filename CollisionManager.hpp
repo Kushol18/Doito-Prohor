@@ -1,9 +1,8 @@
 #ifndef COLLISION_MANAGER_HPP
-#ifndef DRAW_MANAGER_HPP // Ensure DrawManager functions are accessible
-#include "DrawManager.hpp"
-#endif
-
 #define COLLISION_MANAGER_HPP
+
+#include "GameObject.hpp"
+
 
 // Checks if a given bounding box collides with any other solid object in the world
 inline bool checkCollision(GameObject* self, double targetX, double targetY) {
