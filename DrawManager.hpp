@@ -11,7 +11,12 @@ inline void getBackgroundDrawList(GameObject* bgList[], int* count) {
 	int totalCount = getObjectCount();
 
 	for (int i = 0; i < totalCount; i++) {
-		if (allObjs[i].id == OBJ_SWITCH || allObjs[i].id == OBJ_EFFECT) {
+		if (allObjs[i].id == OBJ_SWITCH || allObjs[i].id == OBJ_EFFECT || allObjs[i].id == OBJ_COLLECTIBLE) {
+			// Skip if collectible has already been picked up
+			if (allObjs[i].id == OBJ_COLLECTIBLE && allObjs[i].isCollected) {
+				continue;
+			}
+			// Add objects to draw in the background
 			bgList[*count] = &allObjs[i];
 			(*count)++;
 		}
@@ -28,7 +33,7 @@ inline void getSortedDrawList(GameObject* sortedList[], int* count) {
     int tempCount = 0;
 
     for (int i = 0; i < totalCount; i++) {
-        if (allObjs[i].id != OBJ_SWITCH && allObjs[i].id != OBJ_EFFECT) {
+        if (allObjs[i].id != OBJ_SWITCH && allObjs[i].id != OBJ_EFFECT && allObjs[i].id != OBJ_COLLECTIBLE) {
             temp[tempCount] = &allObjs[i];
             tempCount++;
         }

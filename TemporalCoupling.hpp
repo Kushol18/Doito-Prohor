@@ -20,12 +20,23 @@ inline void triggerRemoteEffect(GameObject* player, double interactionDistance) 
 
             // Check if squared distance is less than or equal to the squared interaction distance
             if (distance <= (interactionDistance * interactionDistance)) {
-                // Check if this switch has a valid target assigned
+                // If the cost hasn't been paid yet, enforce item-specific requirements
+                if (!switchObj->isCostPaid) {
+                    int reqType = switchObj->requiredItemType;
+                    int reqAmt = switchObj->requiredAmount;
+
+                    if (reqType >= 0 && reqType < MAX_ITEM_TYPES && globalInventory[reqType] >= reqAmt) {
+                        globalInventory[reqType] -= reqAmt; // Deduct the specific item type
+                        switchObj->isCostPaid = true;         // Mark cost paid forever
+                    } else {
+                        return; // Not enough of the required item type
+                    }
+                }
+
+                // Toggle target object normally once cost is satisfied
                 int targetIdx = switchObj->targetIndex;
                 if (targetIdx >= 0 && targetIdx < count) {
                     GameObject* targetObj = &allObjects[targetIdx];
-
-                    // Set the state of the specific paired target object to true
                     targetObj->isActivated = true;
                 }
             }

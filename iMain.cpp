@@ -17,7 +17,9 @@ int switch1Img = -1;
 int effect1Img = -1;
 int switch2Img = -1;
 int effect2Img = -1;
-
+int timeShardImg = -1;
+int foodImg = -1;
+	 
 // Images
 int imgT, imgL1, imgL2, imgR1, imgR2;
 
@@ -135,6 +137,18 @@ void iDraw(){
 				iShowImage(drawList[i]->x, drawList[i]->y, drawList[i]->width, drawList[i]->height, drawList[i]->imgIndex);
 			}
 		}
+
+		// Fetch the counts using their itemType indices
+		int timeShardeCount = getSharedInventoryCount(0);
+		int foodCount = getSharedInventoryCount(1);
+		// Convert numbers to strings and display them on screen using iText
+		char timeShardText[50];
+		sprintf(timeShardText, "Time Shard : %d", timeShardeCount);
+		iText(1750, 900, timeShardText, GLUT_BITMAP_HELVETICA_18);
+
+		char foodText[50];
+		sprintf(foodText, "Food : %d", foodCount);
+		iText(1750, 850, foodText, GLUT_BITMAP_HELVETICA_18);
 		
 
 
@@ -199,10 +213,13 @@ void fixedUpdate() {
 			player1->imgIndex = iLoadImage("Image//P1F.png");
 			nextY -= speed;
 		} // Player 1 down
+
 		if (!checkCollision(player1, nextX, nextY)) {
             player1->x = nextX;
             player1->y = nextY;
+			handleCollectibleCollisions(player1); // Checks and updates items
         } // If no collision then update the x & y values
+
 		if (isKeyPressed('e')){
 			triggerRemoteEffect(player1, 25.0);
 		} // Trigger the OBJ_EFFECT for the OBJ_SWITCH on the coordinate of player 1
@@ -230,10 +247,13 @@ void fixedUpdate() {
 			player2->imgIndex = iLoadImage("Image//P2F.png");
 			nextY -= speed;
 		} // Player 2 down
+
 		if (!checkCollision(player2, nextX, nextY)) {
             player2->x = nextX;
             player2->y = nextY;
-        }// If no collision then update the x & y values
+			handleCollectibleCollisions(player2); // Checks and updates items
+        }
+		// If no collision then update the x & y values
 		if (isKeyPressed('0')){
 			triggerRemoteEffect(player2, 25.0);
 		} // Trigger the OBJ_EFFECT for the OBJ_SWITCH on the coordinate of player 2
@@ -277,15 +297,29 @@ int main(){
 	effect1Img = iLoadImage("Image//bridge1.png");
 	switch1Img = iLoadImage("Image//platform1.png");
 	
+	// Collectible item image
+	timeShardImg = iLoadImage("Image//p1.png");
+	foodImg = iLoadImage("Image//tree1.png");
+
+
 	//initialization
 	//player 1 & 2
-	player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48, 10, -1);
-	player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 24, 48, 10, -1);
+	player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48, 20, 10, -1);
+	player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 24, 48, 20, 10, -1);
 
+	// Timeshard -> 0
+	GameObject* timeShard = createObject(OBJ_COLLECTIBLE, 100, 100, timeShardImg, 20, 20, 0, 0, -1);
+	timeShard->itemType = 0;
+	
+	// Food -> 0
+	GameObject* food = createObject(OBJ_COLLECTIBLE, 500, 500, foodImg, 20, 20, 0, 0, -1);
+	food->itemType = 1;
 
-	// Pair 1
-	GameObject* effect1 = createObject(OBJ_EFFECT, 400, 500, effect1Img, 220, 60, 0, -1);
-	createObject(OBJ_SWITCH, 150, 100, switch1Img, 30, 30, 0, getObjectIndex(effect1));
+	// Switch Effect Pair 1
+	GameObject* effect1 = createObject(OBJ_EFFECT, 400, 500, effect1Img, 220, 60, 0, 0, -1);
+	GameObject* switch1 = createObject(OBJ_SWITCH, 150, 100, switch1Img, 30, 30, 0, 0, getObjectIndex(effect1));
+	switch1->requiredItemType = 0;
+	switch1->requiredAmount = 1;
 
 			
 	iStart();
