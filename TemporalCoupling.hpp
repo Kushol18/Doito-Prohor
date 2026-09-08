@@ -4,12 +4,15 @@
 #include "GameObject.hpp"
 
 
-inline void triggerRemoteEffect(GameObject* player, double interactionDistance) {
+inline void triggerRemoteEffectForMap(GameObject* player, double interactionDistance, int activeMapID) {
     GameObject* allObjects = getAllObjects();
     int count = getObjectCount();
 
     for (int i = 0; i < count; i++) {
-        // Find switch objects
+        // Ignore switches on other maps
+		if (allObjects[i].mapID != activeMapID) continue; 
+		
+		// Find switch objects
         if (allObjects[i].id == OBJ_SWITCH) {
             GameObject* switchObj = &allObjects[i];
 

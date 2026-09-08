@@ -14,7 +14,8 @@ enum ObjectType {
 	OBJ_SWITCH,
 	OBJ_EFFECT,
 	OBJ_COLLECTIBLE,
-	OBJ_COMPANION 
+	OBJ_COMPANION,
+	OBJ_OBSTACLES
 };
 
 // GameObject structure
@@ -34,7 +35,9 @@ struct GameObject {
     int requiredAmount; // How many of that item type are required
     bool isCostPaid; // Tracks if the switch cost has been paid yet
 
-	bool isTamed;           // Tracks if a companion has been tamed
+	bool isTamed; // Tracks if a companion has been tamed
+	int mapID; // Tracks which map this entity belongs to
+
 };
 
 
@@ -62,7 +65,8 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
         objects[objectCount].requiredItemType = 0;
         objects[objectCount].requiredAmount = 0;
         objects[objectCount].isCostPaid = false;
-		objects[objectCount].isTamed = true; // Default to true for standard objects
+		objects[objectCount].isTamed = true;
+		objects[objectCount].mapID = 1; 
         
         int currentIndex = objectCount;
         objectCount++;

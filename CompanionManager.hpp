@@ -5,12 +5,14 @@
 #include "CollisionManager.hpp"
 #include <cmath>
 
-inline void updateCompanion(GameObject* companion, GameObject* player, double speed) {
+inline void updateCompanion(GameObject* companion, GameObject* player, double speed, int activeMapID) {
     if (companion == 0 || player == 0) return;
     if (companion->id != OBJ_COMPANION) return; 
 
     // Taming logic if companion is untamed
     if (!companion->isTamed) {
+		if (companion->mapID != activeMapID) return;
+
         double dx = (player->x + player->width / 2.0) - (companion->x + companion->width / 2.0);
         double dy = (player->y + player->height / 2.0) - (companion->y + companion->height / 2.0);
         double distanceSq = (dx * dx) + (dy * dy);
@@ -28,6 +30,11 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
         return; 
     }
 
+	// Sync companion map if following player across maps
+    if (companion->mapID != activeMapID) {
+        companion->mapID = activeMapID;
+    }
+
     // Active follower and hint behavior
     GameObject* allObjects = getAllObjects();
     int count = getObjectCount();
@@ -42,6 +49,8 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
         if (allObjects[i].id == OBJ_SWITCH) {
             GameObject* sw = &allObjects[i];
             
+			if (sw->mapID != activeMapID) continue;
+
             // Ignore switches that have already been triggered/paid for
             if (sw->isCostPaid) continue;
 
@@ -68,21 +77,21 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
         double nextX = companion->x + vx;
         double nextY = companion->y + vy;
 
-        if (!checkCollision(companion, nextX, nextY)) {
+         if (!checkCollisionForMap(companion, nextX, nextY, activeMapID)) {
             companion->x = nextX;
             companion->y = nextY;
         } 
         else {
-            if (!checkCollision(companion, nextX, companion->y)) {
+            if (!checkCollisionForMap(companion, nextX, companion->y, activeMapID)) {
                 companion->x = nextX;
             } 
-            else if (!checkCollision(companion, companion->x, nextY)) {
+            else if (!checkCollisionForMap(companion, companion->x, nextY, activeMapID)) {
                 companion->y = nextY;
             } 
             else {
                 double perpX = -vy * 0.7;
                 double perpY = vx * 0.7;
-                if (!checkCollision(companion, companion->x + perpX, companion->y + perpY)) {
+                if (!checkCollisionForMap(companion, companion->x + perpX, companion->y + perpY, activeMapID)) {
                     companion->x += perpX;
                     companion->y += perpY;
                 }

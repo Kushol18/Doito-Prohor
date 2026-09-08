@@ -4,7 +4,7 @@
 #include "GameObject.hpp"
 
 // Checks if a given bounding box collides with any other solid object in the world
-inline bool checkCollision(GameObject* self, double targetX, double targetY) {
+inline bool checkCollisionForMap(GameObject* self, double targetX, double targetY, int activeMapID) {
     // Center-based X bounds for 'self'
     double selfColWidth = (self->collisionWidth > 0 ? self->collisionWidth : self->width);
     double selfCenterX = targetX + (self->width / 2.0);
@@ -22,6 +22,9 @@ inline bool checkCollision(GameObject* self, double targetX, double targetY) {
 
 		// Do not check collision against itself
         if (other == self) continue;
+
+		// Ignore objects on other maps
+		if (other->mapID != activeMapID) continue;
 
 		// If the other object has no collision height, skip it
         if (other->collisionHeight <= 0) continue;
@@ -54,7 +57,7 @@ inline bool checkCollision(GameObject* self, double targetX, double targetY) {
 
 
 // Collectible collision handler mapping to item type inventory
-inline void handleCollectibleCollisions(GameObject* player) {
+inline void handleCollectibleCollisionsForMap(GameObject* player, int activeMapID) {
     if (player == 0) return;
 
     double pColWidth = (player->collisionWidth > 0 ? player->collisionWidth : player->width);
@@ -69,6 +72,9 @@ inline void handleCollectibleCollisions(GameObject* player) {
 
     for (int i = 0; i < count; i++) {
         GameObject* obj = &allObjects[i];
+
+		// Ignore items on other maps
+		if (obj->mapID != activeMapID) continue;
 
         if (obj->id == OBJ_COLLECTIBLE && !obj->isCollected) {
             double cLeft = obj->x;
