@@ -271,7 +271,6 @@ void gameLoopUpdate() {
 int main(){
 	iInitialize(screenWidth, screenHeight, "Doito Prohor : The Time that Steals");
 	
-	DoitoProhorMenu::initialize();
 
 	// Timer functions
 	iSetTimer(10, gameLoopUpdate);
@@ -302,18 +301,6 @@ int main(){
 	// Companion images
 	wolfImg = iLoadImage("Image//CoWolf.png");
 
-	//initialization
-	//player 1 & 2
-	player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48, 20, 10, -1);
-	player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 24, 48, 20, 10, -1);
-
-	// Timeshard -> 0
-	GameObject* timeShard = createObject(OBJ_COLLECTIBLE, 100, 100, timeShardImg, 20, 20, 0, 0, -1);
-	timeShard->itemType = 0;
-	
-	// Food -> 0
-	GameObject* food = createObject(OBJ_COLLECTIBLE, 500, 500, foodImg, 20, 20, 0, 0, -1);
-	food->itemType = 1;
 
 	// Object creation
 	// Players
@@ -326,11 +313,13 @@ int main(){
 	// Food -> 0
 	GameObject* food = createObject(OBJ_COLLECTIBLE, 500, 500, foodImg, 20, 20, 0, 0, -1);
 	food->itemType = 1;
+
 	// Switch Effect Pair 1
 	GameObject* effect1 = createObject(OBJ_EFFECT, 400, 500, effect1Img, 220, 60, 0, 0, -1);
 	GameObject* switch1 = createObject(OBJ_SWITCH, 150, 100, switch1Img, 30, 30, 0, 0, getObjectIndex(effect1));
 	switch1->requiredItemType = 0;
 	switch1->requiredAmount = 1;
+
 	// Companion
 	wolf = createObject(OBJ_COMPANION, 600, 400, wolfImg, 20, 40, 18, 20, -1);
 	if (wolf != 0) {
@@ -338,6 +327,7 @@ int main(){
         wolf->requiredItemType = 1;   // itemType is Food
         wolf->requiredAmount = 1;     // Needed amount of food to be tamed
     }
+
 
 			
 	iStart();
