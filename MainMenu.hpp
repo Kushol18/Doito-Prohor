@@ -2,18 +2,22 @@
 #define MAIN_MENU_HPP
 
 #include <cstdlib>
+#include "PlayerData.hpp"
+#include "Leaderboard.hpp"
 
 namespace DoitoProhorMenu
 {
     // Reuse the existing gameState values from iMain.cpp:
     // 0 = Main Menu, 1 = Existing Gameplay, 2 = Story,
-    // 3 = Leaderboard, 4 = Options, 5 = Credits.
+    // 3 = Leaderboard, 4 = Options, 5 = Credits, 6 = Pause,
+    // 7 = Player Data.
     static const int MAIN_MENU_STATE = 0;
     static const int PLAY_STATE = 1;
     static const int STORY_STATE = 2;
     static const int LEADERBOARD_STATE = 3;
     static const int OPTIONS_STATE = 4;
     static const int CREDITS_STATE = 5;
+    static const int PLAYER_DATA_STATE = 7;
 
     struct MenuButton
     {
@@ -37,9 +41,10 @@ namespace DoitoProhorMenu
     static const MenuButton leaderboardButton = { 720, 380, 1140, 445 };
     static const MenuButton optionsButton     = { 720, 300, 1140, 360 };
     static const MenuButton creditsButton     = { 720, 215, 1140, 270 };
-    static const MenuButton exitButton         = { 720, 130, 1140, 185 };
+    static const MenuButton exitButton        = { 720, 130, 1140, 185 };
 
-    // Shared Back hitbox for story.png, back_only.png, and credit.png.
+    // Shared Back hitbox for story.png, back_only.png, credit.png,
+    // and the new player-data/leaderboard screens.
     static const MenuButton backButton = { 760, 25, 1160, 170 };
 
     static bool isInsideButton(const MenuButton& button, int mx, int my)
@@ -54,19 +59,29 @@ namespace DoitoProhorMenu
                state == STORY_STATE ||
                state == LEADERBOARD_STATE ||
                state == OPTIONS_STATE ||
-               state == CREDITS_STATE;
+               state == CREDITS_STATE ||
+               state == PLAYER_DATA_STATE;
     }
 
     static void initialize()
     {
-        if (imagesLoaded) return;
+        if (!imagesLoaded)
+        {
+            char mainMenuPath[] = "Image//main_menu.png";
+            char storyPath[] = "Image//story.png";
+            char creditPath[] = "Image//credit.png";
+            char backPath[] = "Image//back_only.png";
 
-        mainMenuImg = iLoadImage("Image//main_menu.png");
-        storyImg = iLoadImage("Image//story.png");
-        creditImg = iLoadImage("Image//credit.png");
-        backOnlyImg = iLoadImage("Image//back_only.png");
+            mainMenuImg = iLoadImage(mainMenuPath);
+            storyImg = iLoadImage(storyPath);
+            creditImg = iLoadImage(creditPath);
+            backOnlyImg = iLoadImage(backPath);
 
-        imagesLoaded = true;
+            imagesLoaded = true;
+        }
+
+        PlayerData::initialize();
+        Leaderboard::initialize();
     }
 
     static void draw(int gameState, int screenWidth, int screenHeight)
@@ -81,7 +96,7 @@ namespace DoitoProhorMenu
         }
         else if (gameState == LEADERBOARD_STATE)
         {
-            iShowImage(0, 0, screenWidth, screenHeight, backOnlyImg);
+            Leaderboard::draw();
         }
         else if (gameState == OPTIONS_STATE)
         {
@@ -91,6 +106,10 @@ namespace DoitoProhorMenu
         {
             iShowImage(0, 0, screenWidth, screenHeight, creditImg);
         }
+        else if (gameState == PLAYER_DATA_STATE)
+        {
+            PlayerData::draw();
+        }
     }
 
     static void handleClick(int& gameState, int mx, int my)
@@ -99,7 +118,8 @@ namespace DoitoProhorMenu
         {
             if (isInsideButton(playButton, mx, my))
             {
-                gameState = PLAY_STATE;
+                PlayerData::beginNewEntry();
+                gameState = PLAYER_DATA_STATE;
             }
             else if (isInsideButton(storyButton, mx, my))
             {
@@ -107,6 +127,7 @@ namespace DoitoProhorMenu
             }
             else if (isInsideButton(leaderboardButton, mx, my))
             {
+                Leaderboard::refresh();
                 gameState = LEADERBOARD_STATE;
             }
             else if (isInsideButton(optionsButton, mx, my))
@@ -122,8 +143,26 @@ namespace DoitoProhorMenu
                 exit(0);
             }
         }
+        else if (gameState == PLAYER_DATA_STATE)
+        {
+            int action = PlayerData::handleClick(mx, my);
+            if (action == 1)
+            {
+                gameState = MAIN_MENU_STATE;
+            }
+            else if (action == 2)
+            {
+                gameState = PLAY_STATE;
+            }
+        }
+        else if (gameState == LEADERBOARD_STATE)
+        {
+            if (Leaderboard::handleClick(mx, my))
+            {
+                gameState = MAIN_MENU_STATE;
+            }
+        }
         else if (gameState == STORY_STATE ||
-                 gameState == LEADERBOARD_STATE ||
                  gameState == OPTIONS_STATE ||
                  gameState == CREDITS_STATE)
         {

@@ -6,6 +6,8 @@
 #include "PauseMenu.hpp"
 #include "PlayerAnimation.hpp"
 #include "Collectables_Count.hpp"
+#include "PlayerData.hpp"
+#include "Leaderboard.hpp"
 #include "CompanionManager.hpp"
 #include "MapLoader.hpp"
 #include <cstring>
@@ -25,6 +27,14 @@ int imgT, imgL1, imgL2, imgR1, imgR2;
 
 // Game initials
 int gameState = 0;
+
+// Current game completion status. The actual gameplay code will decide when
+// this becomes true; this file deliberately does not invent that condition.
+bool game_completion = false;
+
+// Future completion-time hook. No timer exists in the current project, so
+// this remains unset until the real gameplay timer is connected.
+int completionTimeSeconds = -1;
 int screenWidth = 1920, screenHeight = 980;
 double speed = 4.0;
 int offset = 5;
@@ -63,6 +73,15 @@ void resetGameSession()
     // These values belong to a new gameplay session.
     left = 1;
     right = 10;
+
+    game_completion = false;
+    completionTimeSeconds = -1;
+    Leaderboard::resetSessionSaveState();
+    Leaderboard::savePendingPlayerInfo(
+        PlayerData::teamName,
+        PlayerData::player1Name,
+        PlayerData::player2Name
+    );
 
     // Do not carry movement-key states from the abandoned session into
     // the newly started one.
@@ -232,8 +251,8 @@ void iMouse(int button, int state, int mx, int my) {
             int previousState = gameState;
             DoitoProhorMenu::handleClick(gameState, mx, my);
 
-            // A new Play selection always starts from the original gameplay state.
-            if (previousState == DoitoProhorMenu::MAIN_MENU_STATE &&
+            // Starting from the Player Data screen always starts a fresh gameplay session.
+            if (previousState == DoitoProhorMenu::PLAYER_DATA_STATE &&
                 gameState == DoitoProhorMenu::PLAY_STATE)
             {
                 resetGameSession();
@@ -252,6 +271,18 @@ void iMouse(int button, int state, int mx, int my) {
 
 
 void fixedUpdate() {
+    // Player names are typed inside the iGraphics window while the Player Data
+    // screen is active.
+    if (gameState == DoitoProhorMenu::PLAYER_DATA_STATE)
+    {
+        if (PlayerData::updateInput())
+        {
+            gameState = DoitoProhorMenu::PLAY_STATE;
+            resetGameSession();
+        }
+        return;
+    }
+
     // A pause freezes all gameplay updates, including keyboard-driven movement
     // and animation.
     if (gameState != DoitoProhorMenu::PLAY_STATE)
@@ -338,6 +369,17 @@ void fixedUpdate() {
 
 // This function runs automatically every time the timer fires
 void gameLoopUpdate() {
+    // FUTURE GAME COMPLETION LOGIC:
+    // Set game_completion = true and provide the real elapsed time through
+    // completionTimeSeconds when the actual game-winning condition is implemented.
+    Leaderboard::saveIfCompleted(
+        game_completion,
+        completionTimeSeconds,
+        PlayerData::teamName,
+        PlayerData::player1Name,
+        PlayerData::player2Name
+    );
+
     // Companion updates must stop while the game is paused.
     if (gameState != DoitoProhorMenu::PLAY_STATE)
     {
