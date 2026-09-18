@@ -23,17 +23,11 @@ int World1Img = -1;
 int World2Img = -1;
 int player1Img = -1;
 int player2Img = -1;
-int imgT, imgL1, imgL2, imgR1, imgR2;
+int imgT, imgL1, imgL2, imgL3, imgL4, imgR1, imgR2, imgR3, imgR4;
 
 // Game initials
 int gameState = 0;
-
-// Current game completion status. The actual gameplay code will decide when
-// this becomes true; this file deliberately does not invent that condition.
 bool game_completion = false;
-
-// Future completion-time hook. No timer exists in the current project, so
-// this remains unset until the real gameplay timer is connected.
 int completionTimeSeconds = -1;
 int screenWidth = 1920, screenHeight = 980;
 double speed = 4.0;
@@ -74,7 +68,7 @@ void resetGameSession()
     left = 1;
     right = 10;
 
-    game_completion = false;
+	game_completion = false;
     completionTimeSeconds = -1;
     Leaderboard::resetSessionSaveState();
     Leaderboard::savePendingPlayerInfo(
@@ -107,6 +101,10 @@ void mapLoader1(){
         iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, imgL1);
     }else if(left == 2){
         iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, imgL2);
+    }else if(left == 3){
+        iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, imgL3);
+    }else if(left == 4){
+        iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, imgL4);
     }
 }
 
@@ -116,6 +114,10 @@ void mapLoader2(){
         iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR1);
     }else if(right == 11){
         iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR2);
+    }else if(right == 12){
+        iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR3);
+    }else if(right == 13){
+        iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR4);
     }
 }
 
@@ -269,7 +271,6 @@ void iMouse(int button, int state, int mx, int my) {
     }
 }
 
-
 void fixedUpdate() {
     // Player names are typed inside the iGraphics window while the Player Data
     // screen is active.
@@ -285,84 +286,162 @@ void fixedUpdate() {
 
     // A pause freezes all gameplay updates, including keyboard-driven movement
     // and animation.
-    if (gameState != DoitoProhorMenu::PLAY_STATE)
-    {
-        return;
-    }
+	if (gameState != DoitoProhorMenu::PLAY_STATE) return;
 
-    // Keys allocated for player 1
+	// ==========================================
+    // PLAYER 1 MOVEMENT & MAP TRANSITIONS
+    // ==========================================
     if(player1 != 0){
-        double nextX = player1->x;
-        double nextY = player1->y;
+		// Define Player 1 screen boundaries (Viewport 1)
+        double p1MinX = screen1X + offset;
+        double p1MaxX = screen1X + screenW - offset - player1->width;
+        double p1MinY = screen1Y + offset;
+        double p1MaxY = screen1Y + screenH - offset - player1->height;
 
-        if ( isKeyPressed('d')){
-            nextX += speed;
-        } // Player 1 right
-        if (isKeyPressed('w')){
-            nextY += speed;
-        } // Player 1 up
-        if (isKeyPressed('a')){
-            nextX -= speed;
-        } // Player 1 left
-        if (isKeyPressed('s')){
-            nextY -= speed;
-        } // Player 1 down
+        double dx = 0, dy = 0;
+        if (isKeyPressed('d')) dx += 1.0;
+        if (isKeyPressed('a')) dx -= 1.0;
+        if (isKeyPressed('w')) dy += 1.0;
+        if (isKeyPressed('s')) dy -= 1.0;
+
+        if (dx != 0 && dy != 0) { dx *= 0.7071; dy *= 0.7071; }
+
+        double nextX = player1->x + (dx * speed);
+        double nextY = player1->y + (dy * speed);
 
         PlayerAnimation::updatePlayer1(player1);
 
-        if (!checkCollisionForMap(player1, nextX, nextY, left)) {
-            player1->x = nextX;
-            player1->y = nextY;
-            handleCollectibleCollisionsForMap(player1, left); // Checks and updates items
-        } // If no collision then update the x & y values
+        // 2x2 Grid Map Transitions for Player 1
+        bool mapChanged = false;
+        if (left == 1) {
+            if (nextY > p1MaxY) { left = 2; player1->y = p1MinY; mapChanged = true; }
+            else if (nextX < p1MinX) { left = 3; player1->x = p1MaxX; mapChanged = true; }
+        }
+        else if (left == 2) {
+            if (nextY < p1MinY) { left = 1; player1->y = p1MaxY; mapChanged = true; }
+            else if (nextX < p1MinX) { left = 4; player1->x = p1MaxX; mapChanged = true; }
+        }
+        else if (left == 3) {
+            if (nextY > p1MaxY) { left = 4; player1->y = p1MinY; mapChanged = true; }
+            else if (nextX > p1MaxX) { left = 1; player1->x = p1MinX; mapChanged = true; }
+        }
+        else if (left == 4) {
+            if (nextY < p1MinY) { left = 3; player1->y = p1MaxY; mapChanged = true; }
+            else if (nextX > p1MaxX) { left = 2; player1->x = p1MinX; mapChanged = true; }
+        }
 
+        if (mapChanged) {
+            player1->mapID = left;
+            if (wolf1 != 0 && wolf1->isTamed) {
+                wolf1->mapID = left;
+                wolf1->x = player1->x - 30;
+                wolf1->y = player1->y;
+            }
+        } 
+        else {
+            if (nextX >= p1MinX && nextX <= p1MaxX && nextY >= p1MinY && nextY <= p1MaxY) {
+                if (!checkCollisionForMap(player1, nextX, nextY, left)) {
+                    player1->x = nextX;
+                    player1->y = nextY;
+                    handleCollectibleCollisionsForMap(player1, left);
+                }
+            }
+        }
+
+        // Remote Switch Trigger ('e')
         if (isKeyPressed('e')){
             triggerRemoteEffectForMap(player1, 25.0, left);
-        } // Trigger the OBJ_EFFECT for the OBJ_SWITCH on the coordinate of player 1
+        } 
 
-        if (isKeyPressed('q')){
-            left = 2;
-        } // changes map
-
+        // Companion Guide Trigger ('q')
+        if (wolf1 != 0 && wolf1->isTamed && isKeyPressed('q')) {
+            double distX = (player1->x - wolf1->x);
+            double distY = (player1->y - wolf1->y);
+            if ((distX * distX + distY * distY) <= 4000.0) {
+                if (globalInventory[1] >= 1 && !wolf1->isGuiding) {
+                    globalInventory[1] -= 1;
+                    wolf1->isGuiding = true;
+                }
+            }
+        }
     }
 
-    // Keys allocated for player 2
+    // ==========================================
+    // PLAYER 2 MOVEMENT & MAP TRANSITIONS
+    // ==========================================
     if(player2 != 0){
-        double nextX = player2->x;
-        double nextY = player2->y;
+		// Define Player 2 screen boundaries (Viewport 2)
+        double p2MinX = screen2X + offset;
+        double p2MaxX = screen2X + screenW - offset - player2->width;
+        double p2MinY = screen2Y + offset;
+        double p2MaxY = screen2Y + screenH - offset - player2->height;
 
-        if (isSpecialKeyPressed(GLUT_KEY_RIGHT)){
-            nextX += speed;
-        } // Player 2 right
-        if (isSpecialKeyPressed(GLUT_KEY_UP)){
-            nextY += speed;
-        } // Player 2 up
-        if (isSpecialKeyPressed(GLUT_KEY_LEFT)){
-            nextX -= speed;
-        } // Player 2 left
-        if (isSpecialKeyPressed(GLUT_KEY_DOWN)){
-            nextY -= speed;
-        } // Player 2 down
+        double dx = 0, dy = 0;
+        if (isSpecialKeyPressed(GLUT_KEY_RIGHT)) dx += 1.0;
+        if (isSpecialKeyPressed(GLUT_KEY_LEFT)) dx -= 1.0;
+        if (isSpecialKeyPressed(GLUT_KEY_UP)) dy += 1.0;
+        if (isSpecialKeyPressed(GLUT_KEY_DOWN)) dy -= 1.0;
+
+        if (dx != 0 && dy != 0) { dx *= 0.7071; dy *= 0.7071; }
+
+        double nextX = player2->x + (dx * speed);
+        double nextY = player2->y + (dy * speed);
 
         PlayerAnimation::updatePlayer2(player2);
 
-        if (!checkCollisionForMap(player2, nextX, nextY, right)) {
-            player2->x = nextX;
-            player2->y = nextY;
-            handleCollectibleCollisionsForMap(player2, right); // Checks and updates items
+        // 2x2 Grid Map Transitions for Player 2
+        bool mapChanged = false;
+        if (right == 10) {
+            if (nextY > p2MaxY) { right = 11; player2->y = p2MinY; mapChanged = true; }
+            else if (nextX > p2MaxX) { right = 12; player2->x = p2MinX; mapChanged = true; }
         }
-        // If no collision then update the x & y values
+        else if (right == 11) {
+            if (nextY < p2MinY) { right = 10; player2->y = p2MaxY; mapChanged = true; }
+            else if (nextX > p2MaxX) { right = 13; player2->x = p2MinX; mapChanged = true; }
+        }
+        else if (right == 12) {
+            if (nextY > p2MaxY) { right = 13; player2->y = p2MinY; mapChanged = true; }
+            else if (nextX < p2MinX) { right = 10; player2->x = p2MaxX; mapChanged = true; }
+        }
+        else if (right == 13) {
+            if (nextY < p2MinY) { right = 12; player2->y = p2MaxY; mapChanged = true; }
+            else if (nextX < p2MinX) { right = 11; player2->x = p2MinX; mapChanged = true; }
+        }
+
+        if (mapChanged) {
+            player2->mapID = right;
+            if (wolf2 != 0 && wolf2->isTamed) {
+                wolf2->mapID = right;
+                wolf2->x = player2->x - 30;
+                wolf2->y = player2->y;
+            }
+        } 
+        else {
+            if (nextX >= p2MinX && nextX <= p2MaxX && nextY >= p2MinY && nextY <= p2MaxY) {
+                if (!checkCollisionForMap(player2, nextX, nextY, right)) {
+                    player2->x = nextX;
+                    player2->y = nextY;
+                    handleCollectibleCollisionsForMap(player2, right);
+                }
+            }
+        }
+
+        // Remote Switch Trigger ('0')
         if (isKeyPressed('0')){
             triggerRemoteEffectForMap(player2, 25.0, right);
-        } // Trigger the OBJ_EFFECT for the OBJ_SWITCH on the coordinate of player 2
+        }
 
-    }
-
-
-
-    if (isKeyPressed(' ')){
-        // Playing the audio once
-        //mciSendString("play ggsong from 0", NULL, 0, NULL);
+        // Companion Guide Trigger ('1')
+        if (wolf2 != 0 && wolf2->isTamed && isKeyPressed('1')) {
+            double distX = (player2->x - wolf2->x);
+            double distY = (player2->y - wolf2->y);
+            if ((distX * distX + distY * distY) <= 4000.0) {
+                if (globalInventory[1] >= 1 && !wolf2->isGuiding) {
+                    globalInventory[1] -= 1;
+                    wolf2->isGuiding = true;
+                }
+            }
+        }
     }
 }
 
@@ -380,7 +459,7 @@ void gameLoopUpdate() {
         PlayerData::player2Name
     );
 
-    // Companion updates must stop while the game is paused.
+	// Companion updates must stop while the game is paused.
     if (gameState != DoitoProhorMenu::PLAY_STATE)
     {
         return;
@@ -410,20 +489,25 @@ int main(){
     World1Img = iLoadImage("Image//Luptaronyo.png");
     World2Img = iLoadImage("Image//Niharika.png");
     //initialize images of maps
-    imgL1 = iLoadImage("Image//bgworld1.png");
-    imgL2 = iLoadImage("Image//bgworld1.png");
-    imgR1 = iLoadImage("Image//bgworld2.png");
-    //imgR2 = iLoadImage("Image//bgworld2.png");
+    imgL1 = iLoadImage("Image//bg1world1.png"); // player 1: 2-2 = bottom-right
+    imgL2 = iLoadImage("Image//bg1world1.png"); // player 1: 1-2 = top-right
+	imgL3 = iLoadImage("Image//bg1world1.png"); // player 1: 2-1 = bottom-left
+    imgL4 = iLoadImage("Image//bg1world1.png"); // player 1: 1-1 = top-left
+    imgR1 = iLoadImage("Image//bg12world2.png"); // player 2: 2-1 = bottom-left
+	imgR2 = iLoadImage("Image//bg12world2.png"); // player 2: 1-1 = top-left
+	imgR3 = iLoadImage("Image//bg3world2.png"); // player 2: 2-2 = bottom-right
+	imgR4 = iLoadImage("Image//bg4world2.png"); // player 2: 1-2 = top-right
+    
     //initialize images of player 1 & 2
     player1Img = iLoadImage("Image//P1F.png");
     player2Img = iLoadImage("Image//P2F.png");
 
 
     // Players
-    player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 24, 48, 20, 10, -1);
+    player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 34, 58, 30, 15, -1);
     player1->mapID = 1;
 
-    player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 24, 48, 20, 10, -1);
+    player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 34, 58, 30, 15, -1);
     player2->mapID = 10;
 
 

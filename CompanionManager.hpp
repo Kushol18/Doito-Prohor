@@ -35,37 +35,44 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
         companion->mapID = activeMapID;
     }
 
-    // Active follower and hint behavior
-    GameObject* allObjects = getAllObjects();
-    int count = getObjectCount();
-
+    // Determine target position: default to following the player
     double targetX = player->x;
     double targetY = player->y;
-    
-    double hintDetectionRadius = 250.0; 
     double stopDistance = 35.0;         
 
-    for (int i = 0; i < count; i++) {
-        if (allObjects[i].id == OBJ_SWITCH) {
+    // ONLY hunt for switches if the player has paid/activated Guide Mode
+    if (companion->isGuiding) {
+        GameObject* allObjects = getAllObjects();
+        int count = getObjectCount();
+        double hintDetectionRadius = 500.0; // Larger range when actively searching
+
+        for (int i = 0; i < count; i++) {
             GameObject* sw = &allObjects[i];
-            
-			if (sw->mapID != activeMapID) continue;
+            if (sw->mapID != activeMapID) continue;
 
-            // Ignore switches that have already been triggered/paid for
-            if (sw->isCostPaid) continue;
+            if (sw->id == OBJ_SWITCH) {
+                if (sw->isCostPaid) continue;
 
-            double sdx = sw->x - companion->x;
-            double sdy = sw->y - companion->y;
-            double distSq = (sdx * sdx) + (sdy * sdy);
+                double sdx = sw->x - companion->x;
+                double sdy = sw->y - companion->y;
+                double distSq = (sdx * sdx) + (sdy * sdy);
 
-            if (distSq <= (hintDetectionRadius * hintDetectionRadius)) {
-                targetX = sw->x;
-                targetY = sw->y;
-                break; 
+                if (distSq <= (hintDetectionRadius * hintDetectionRadius)) {
+                    targetX = sw->x;
+                    targetY = sw->y;
+                    
+                    // If companion reaches the switch, turn off guiding mode
+                    double reachDist = (companion->x - sw->x) * (companion->x - sw->x) + (companion->y - sw->y) * (companion->y - sw->y);
+                    if (reachDist < 400.0) { // Within 20 pixels
+                        companion->isGuiding = false;
+                    }
+                    break; 
+                }
             }
         }
     }
 
+    // Movement towards target (Player or Switch)
     double dx = targetX - companion->x;
     double dy = targetY - companion->y;
     double distance = std::sqrt(dx * dx + dy * dy);
@@ -77,7 +84,7 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
         double nextX = companion->x + vx;
         double nextY = companion->y + vy;
 
-         if (!checkCollisionForMap(companion, nextX, nextY, activeMapID)) {
+        if (!checkCollisionForMap(companion, nextX, nextY, activeMapID)) {
             companion->x = nextX;
             companion->y = nextY;
         } 
@@ -87,14 +94,6 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
             } 
             else if (!checkCollisionForMap(companion, companion->x, nextY, activeMapID)) {
                 companion->y = nextY;
-            } 
-            else {
-                double perpX = -vy * 0.7;
-                double perpY = vx * 0.7;
-                if (!checkCollisionForMap(companion, companion->x + perpX, companion->y + perpY, activeMapID)) {
-                    companion->x += perpX;
-                    companion->y += perpY;
-                }
             }
         }
     }

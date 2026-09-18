@@ -47,7 +47,7 @@ namespace Leaderboard
                my >= button.y1 && my <= button.y2;
     }
 
-    static void drawText(int x, int y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18)
+    static void drawText(int x, int y, const std::string& text, void* font = GLUT_BITMAP_TIMES_ROMAN_24)
     {
         char buffer[256];
         std::strncpy(buffer, text.c_str(), sizeof(buffer) - 1);
@@ -220,14 +220,14 @@ namespace Leaderboard
 
             char positionText[16];
             std::sprintf(positionText, "%d", i + 1);
-            iText(330, rowY[i], positionText, GLUT_BITMAP_HELVETICA_18);
+            iText(380, rowY[i], positionText, GLUT_BITMAP_TIMES_ROMAN_24);
 
             drawText(590, rowY[i], result.teamName);
 
             std::string players = result.player1Name + " / " + result.player2Name;
-            drawText(930, rowY[i], players);
+            drawText(1010, rowY[i], players);
 
-            drawText(1370, rowY[i], formatTime(result.completionTimeSeconds));
+            drawText(1490, rowY[i], formatTime(result.completionTimeSeconds));
         }
     }
 

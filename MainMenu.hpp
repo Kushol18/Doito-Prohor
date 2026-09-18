@@ -17,7 +17,7 @@ namespace DoitoProhorMenu
     static const int LEADERBOARD_STATE = 3;
     static const int OPTIONS_STATE = 4;
     static const int CREDITS_STATE = 5;
-    static const int PLAYER_DATA_STATE = 7;
+	static const int PLAYER_DATA_STATE = 7;
 
     struct MenuButton
     {
@@ -36,15 +36,15 @@ namespace DoitoProhorMenu
 
     // These hitboxes are in the 1920x980 game window coordinate system.
     // The main_menu.png image is scaled from 1756x896 to fill that window.
-    static const MenuButton playButton        = { 720, 555, 1140, 610 };
-    static const MenuButton storyButton       = { 720, 465, 1140, 520 };
-    static const MenuButton leaderboardButton = { 720, 380, 1140, 445 };
-    static const MenuButton optionsButton     = { 720, 300, 1140, 360 };
-    static const MenuButton creditsButton     = { 720, 215, 1140, 270 };
-    static const MenuButton exitButton        = { 720, 130, 1140, 185 };
+    static const MenuButton playButton        = { 720, 535, 1140, 590 };
+    static const MenuButton storyButton       = { 720, 445, 1140, 500 };
+    static const MenuButton leaderboardButton = { 720, 360, 1140, 425 };
+    static const MenuButton optionsButton     = { 720, 280, 1140, 340 };
+    static const MenuButton creditsButton     = { 720, 195, 1140, 250 };
+    static const MenuButton exitButton        = { 720, 110, 1140, 165 };
 
-    // Shared Back hitbox for story.png, back_only.png, credit.png,
-    // and the new player-data/leaderboard screens.
+    // Shared Back hitbox for story.png, back_only.png, and credit.png.
+	// and the new player-data/leaderboard screens.
     static const MenuButton backButton = { 760, 25, 1160, 170 };
 
     static bool isInsideButton(const MenuButton& button, int mx, int my)
@@ -76,11 +76,10 @@ namespace DoitoProhorMenu
             storyImg = iLoadImage(storyPath);
             creditImg = iLoadImage(creditPath);
             backOnlyImg = iLoadImage(backPath);
+			imagesLoaded = true;
+		}
 
-            imagesLoaded = true;
-        }
-
-        PlayerData::initialize();
+		PlayerData::initialize();
         Leaderboard::initialize();
     }
 
@@ -106,7 +105,7 @@ namespace DoitoProhorMenu
         {
             iShowImage(0, 0, screenWidth, screenHeight, creditImg);
         }
-        else if (gameState == PLAYER_DATA_STATE)
+		else if (gameState == PLAYER_DATA_STATE)
         {
             PlayerData::draw();
         }
@@ -128,7 +127,7 @@ namespace DoitoProhorMenu
             else if (isInsideButton(leaderboardButton, mx, my))
             {
                 Leaderboard::refresh();
-                gameState = LEADERBOARD_STATE;
+				gameState = LEADERBOARD_STATE;
             }
             else if (isInsideButton(optionsButton, mx, my))
             {
@@ -143,7 +142,7 @@ namespace DoitoProhorMenu
                 exit(0);
             }
         }
-        else if (gameState == PLAYER_DATA_STATE)
+		else if (gameState == PLAYER_DATA_STATE)
         {
             int action = PlayerData::handleClick(mx, my);
             if (action == 1)

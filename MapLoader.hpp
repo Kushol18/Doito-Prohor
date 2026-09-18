@@ -26,9 +26,12 @@ inline void loadAllGameMaps() {
     p1_shard1->itemType = 0;
     p1_shard1->mapID = 1;
 	// food
-	GameObject* food = createObject(OBJ_COLLECTIBLE, 300, 300, foodImg, 20, 20, 0, 0, -1);
-	food->itemType = 1;
-	food->mapID = 1;
+	GameObject* food1 = createObject(OBJ_COLLECTIBLE, 300, 300, foodImg, 20, 20, 0, 0, -1);
+	food1->itemType = 1;
+	food1->mapID = 1;
+	GameObject* food2 = createObject(OBJ_COLLECTIBLE, 200, 250, foodImg, 20, 20, 0, 0, -1);
+	food2->itemType = 1;
+	food2->mapID = 1;
 	// tree
 	GameObject* p1_tree1 = createObject(OBJ_TREE, 200, 100, tree, 150, 150, 20, 15, -1);
 	p1_tree1->mapID = 1;
@@ -38,7 +41,7 @@ inline void loadAllGameMaps() {
 	p1_tree3->mapID = 1;
 
 	// ruins
-	GameObject* p1_ruin1 = createObject(OBJ_OBSTACLES, 500, 200, ruin, 400, 400, 400, 350, -1);
+	GameObject* p1_ruin1 = createObject(OBJ_OBSTACLES, 500, 200, ruin, 400, 400, 400, 250, -1);
 	p1_ruin1->mapID = 1;
 	
 	// effect
@@ -49,8 +52,13 @@ inline void loadAllGameMaps() {
     p1_switch1->requiredItemType = 0;
     p1_switch1->requiredAmount = 1;
     p1_switch1->mapID = 1;
+	// Creating an entrance object for Structure 1 (Standard Maze) on Map 1
+	GameObject* entrance1 = createObject(OBJ_ENTRANCE, 700, 170, switch1Img, 30, 30, 10, 10, -1);
+	entrance1->miniGameVariant = 1;
+
+
 	// companion
-    loadedCompanionP1 = createObject(OBJ_COMPANION, 300, 400, wolfImg, 20, 40, 18, 20, -1);
+    loadedCompanionP1 = createObject(OBJ_COMPANION, 300, 400, wolfImg, 34, 58, 20, 10, -1);
     loadedCompanionP1->isTamed = false;
     loadedCompanionP1->requiredItemType = 1;
     loadedCompanionP1->requiredAmount = 1;
@@ -87,7 +95,7 @@ inline void loadAllGameMaps() {
     p2_switch1->requiredAmount = 1;
     p2_switch1->mapID = 10;
 
-    loadedCompanionP2 = createObject(OBJ_COMPANION, 1400, 450, wolfImg, 20, 40, 18, 20, -1);
+    loadedCompanionP2 = createObject(OBJ_COMPANION, 1400, 450, wolfImg, 34, 58, 20, 10, -1);
     loadedCompanionP2->isTamed = false;
     loadedCompanionP2->requiredItemType = 1;
     loadedCompanionP2->requiredAmount = 1;

@@ -20,9 +20,9 @@ namespace PlayerData
 
     // Coordinates are for the 1920x980 game window after player_data.png
     // is scaled to fill the screen.
-    static const Button teamField   = { 865, 548, 1295, 610 };
-    static const Button player1Field = { 865, 445, 1295, 508 };
-    static const Button player2Field = { 865, 344, 1295, 407 };
+    static const Button teamField   = { 890, 540, 1295, 605 };
+    static const Button player1Field = { 890, 442, 1295, 508 };
+    static const Button player2Field = { 890, 338, 1295, 402 };
     static const Button backButton   = { 760, 25, 1160, 170 };
     static const Button startButton  = { 1220, 55, 1740, 155 };
 
@@ -61,7 +61,7 @@ namespace PlayerData
         char buffer[128];
         std::strncpy(buffer, text.c_str(), sizeof(buffer) - 1);
         buffer[sizeof(buffer) - 1] = '\0';
-        iText(x, y, buffer, GLUT_BITMAP_HELVETICA_18);
+        iText(x, y, buffer, GLUT_BITMAP_TIMES_ROMAN_24);
     }
 
     static void initialize()
@@ -218,14 +218,6 @@ namespace PlayerData
         drawText(player1Field.x1 + 18, player1Field.y1 + 20, player1Name);
         drawText(player2Field.x1 + 18, player2Field.y1 + 20, player2Name);
 
-        // The provided player_data artwork has a Back control but no Start
-        // button, so Enter (or the area beside Back) is used to continue.
-        drawText(1240, 100, "Press ENTER to START GAME");
-
-        if (!isComplete())
-        {
-            drawText(1240, 76, "Fill all three fields");
-        }
     }
 }
 

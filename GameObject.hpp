@@ -15,7 +15,8 @@ enum ObjectType {
 	OBJ_EFFECT,
 	OBJ_COLLECTIBLE,
 	OBJ_COMPANION,
-	OBJ_OBSTACLES
+	OBJ_OBSTACLES,
+	OBJ_ENTRANCE
 };
 
 // GameObject structure
@@ -37,6 +38,9 @@ struct GameObject {
 
 	bool isTamed; // Tracks if a companion has been tamed
 	int mapID; // Tracks which map this entity belongs to
+
+	bool isGuiding; // Flag for active tracking mode
+	int miniGameVariant; // 0 = None, 1 = Standard Maze, 2 = One-Way Doors, 3 = Color Match
 
 };
 
@@ -67,6 +71,8 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
         objects[objectCount].isCostPaid = false;
 		objects[objectCount].isTamed = true;
 		objects[objectCount].mapID = 1; 
+		objects[objectCount].isGuiding = false;
+		objects[objectCount].miniGameVariant = 0;
         
         int currentIndex = objectCount;
         objectCount++;
