@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #ifndef PLAYER_DATA_HPP
 #define PLAYER_DATA_HPP
 

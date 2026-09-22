@@ -3,6 +3,43 @@
 
 #include "GameObject.hpp"
 
+
+// 3-Argument version with custom touch margin
+inline bool checkCollision(GameObject* a, GameObject* b, double margin) {
+    if (!a || !b) return false;
+    if (a->isHidden || b->isHidden) return false;
+    if (a->mapID != b->mapID) return false;
+
+    double aW = (a->collisionWidth > 0) ? a->collisionWidth : ((a->width > 0) ? a->width : 32.0);
+    double aH = (a->collisionHeight > 0) ? a->collisionHeight : ((a->height > 0) ? a->height : 32.0);
+    double aFullW = (a->width > 0) ? a->width : aW;
+
+    double bW = (b->collisionWidth > 0) ? b->collisionWidth : ((b->width > 0) ? b->width : 32.0);
+    double bH = (b->collisionHeight > 0) ? b->collisionHeight : ((b->height > 0) ? b->height : 32.0);
+    double bFullW = (b->width > 0) ? b->width : bW;
+
+    double aLeft   = a->x + (aFullW - aW) / 2.0;
+    double aRight  = aLeft + aW;
+    double aBottom = a->y;
+    double aTop    = a->y + aH;
+
+    double bLeft   = b->x + (bFullW - bW) / 2.0;
+    double bRight  = bLeft + bW;
+    double bBottom = b->y;
+    double bTop    = b->y + bH;
+
+    return (aLeft <= bRight + margin && 
+            aRight >= bLeft - margin &&
+            aBottom <= bTop + margin && 
+            aTop >= bBottom - margin);
+}
+
+// 2-Argument default overload (calls 3-arg version with 4.0 margin)
+inline bool checkCollision(GameObject* a, GameObject* b) {
+    return checkCollision(a, b, 4.0);
+}
+
+
 // Checks if a given bounding box collides with any other solid object in the world
 inline bool checkCollisionForMap(GameObject* self, double targetX, double targetY, int activeMapID) {
     // Center-based X bounds for 'self'

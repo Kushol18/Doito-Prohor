@@ -10,6 +10,7 @@
 #include "Leaderboard.hpp"
 #include "CompanionManager.hpp"
 #include "MapLoader.hpp"
+#include "EntranceManager.hpp"
 #include <cstring>
 
 // Stored pointers for direct reference to specific objects
@@ -24,6 +25,7 @@ int World2Img = -1;
 int player1Img = -1;
 int player2Img = -1;
 int imgT, imgL1, imgL2, imgL3, imgL4, imgR1, imgR2, imgR3, imgR4;
+int mini1bg, mini2bg;
 
 // Game initials
 int gameState = 0;
@@ -50,6 +52,7 @@ int right = 10; // P2 starts on Map 10
 static GameObject initialGameObjects[MAX_OBJECTS];
 static int initialObjectCount = 0;
 static int initialInventory[MAX_ITEM_TYPES] = { 0 };
+
 
 void captureInitialGameState()
 {
@@ -93,6 +96,10 @@ void resetGameSession()
     wolf2 = loadedCompanionP2;
 
     PlayerAnimation::reset();
+
+	// Reset entrance & ruin completion flags
+    resetEntranceState();
+
 }
 
 void mapLoader1(){
@@ -106,6 +113,14 @@ void mapLoader1(){
     }else if(left == 4){
         iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, imgL4);
     }
+	// Interior Ruin maps for P1
+	else if (left == 101) {
+        iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, mini1bg);
+    }else if (left == 102) {
+        iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, mini1bg);
+    }else if (left == 103) {
+        iShowImage(screen1X+offset, screen1Y+offset, screenW-2*offset, screenH-2*offset, mini1bg);
+    }
 }
 
 void mapLoader2(){
@@ -118,6 +133,14 @@ void mapLoader2(){
         iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR3);
     }else if(right == 13){
         iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, imgR4);
+    }	
+	// Interior Ruin maps for P2
+	else if (right == 104) {
+        iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, mini2bg);
+    }else if (right == 105) {
+        iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, mini2bg);
+    }else if (right == 106) {
+        iShowImage(screen2X+offset, screen2Y+offset, screenW-2*offset, screenH-2*offset, mini2bg);
     }
 }
 
@@ -351,6 +374,7 @@ void fixedUpdate() {
         // Remote Switch Trigger ('e')
         if (isKeyPressed('e')){
             triggerRemoteEffectForMap(player1, 25.0, left);
+			handleEntranceAndExit(player1, left, true);
         } 
 
         // Companion Guide Trigger ('q')
@@ -429,6 +453,7 @@ void fixedUpdate() {
         // Remote Switch Trigger ('0')
         if (isKeyPressed('0')){
             triggerRemoteEffectForMap(player2, 25.0, right);
+			handleEntranceAndExit(player2, right, true);
         }
 
         // Companion Guide Trigger ('1')
@@ -467,6 +492,8 @@ void gameLoopUpdate() {
 
     updateCompanion(wolf1, player1, 3.0, left);
     updateCompanion(wolf2, player2, 3.0, right);
+
+	updateSpecialInteractions(); // Checks boat, pond, backup switch unlock, and message bottle continuously
 }
 
 
@@ -497,6 +524,9 @@ int main(){
 	imgR2 = iLoadImage("Image//bg12world2.png"); // player 2: 1-1 = top-left
 	imgR3 = iLoadImage("Image//bg3world2.png"); // player 2: 2-2 = bottom-right
 	imgR4 = iLoadImage("Image//bg4world2.png"); // player 2: 1-2 = top-right
+
+	mini1bg = iLoadImage("Image//mini1bg.png");
+	mini2bg = iLoadImage("Image//mini2bg.jpg");
     
     //initialize images of player 1 & 2
     player1Img = iLoadImage("Image//P1F.png");

@@ -16,7 +16,9 @@ enum ObjectType {
 	OBJ_COLLECTIBLE,
 	OBJ_COMPANION,
 	OBJ_OBSTACLES,
-	OBJ_ENTRANCE
+	OBJ_ENTRANCE,
+	OBJ_EXIT,
+	OBJ_WALL
 };
 
 // GameObject structure

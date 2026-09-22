@@ -2,6 +2,7 @@
 #define TEMPORAL_COUPLING_HPP
 
 #include "GameObject.hpp"
+#include "MapLoader.hpp"
 
 
 inline void triggerRemoteEffectForMap(GameObject* player, double interactionDistance, int activeMapID) {
@@ -47,7 +48,9 @@ inline void triggerRemoteEffectForMap(GameObject* player, double interactionDist
 					else if (targetObj->id == OBJ_SWITCH) {
 						// Reveal the switch, but DO NOT pay its cost. 
 						// It remains manually payable by the player later.
-						targetObj->isHidden = false; 
+						targetObj->isHidden = false;
+						totalSwitchesActivated++;
+						checkBackupSwitchUnlock();
 					}
 				}
             }
