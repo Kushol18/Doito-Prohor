@@ -405,7 +405,7 @@ void fixedUpdate() {
         }
         else if (right == 13) {
             if (nextY < p2MinY) { right = 12; player2->y = p2MaxY; mapChanged = true; }
-            else if (nextX < p2MinX) { right = 11; player2->x = p2MinX; mapChanged = true; }
+            else if (nextX < p2MinX) { right = 11; player2->x = p2MaxX; mapChanged = true; }
         }
 
         if (mapChanged) {
@@ -504,10 +504,10 @@ int main(){
 
 
     // Players
-    player1 = createObject(OBJ_PLAYER, 460, 30, player1Img, 34, 58, 30, 15, -1);
+    player1 = createObject(OBJ_PLAYER, 400, 75, player1Img, 34, 58, 30, 12, -1);
     player1->mapID = 1;
 
-    player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 34, 58, 30, 15, -1);
+    player2 = createObject(OBJ_PLAYER, 1440, 30, player2Img, 34, 58, 30, 12, -1);
     player2->mapID = 10;
 
 

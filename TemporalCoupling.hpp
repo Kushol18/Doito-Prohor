@@ -38,10 +38,18 @@ inline void triggerRemoteEffectForMap(GameObject* player, double interactionDist
 
                 // Toggle target object normally once cost is satisfied
                 int targetIdx = switchObj->targetIndex;
-                if (targetIdx >= 0 && targetIdx < count) {
-                    GameObject* targetObj = &allObjects[targetIdx];
-                    targetObj->isActivated = true;
-                }
+				if (targetIdx >= 0 && targetIdx < count) {
+					GameObject* targetObj = &allObjects[targetIdx];
+    
+					if (targetObj->id == OBJ_EFFECT) {
+						targetObj->isActivated = true;
+					}
+					else if (targetObj->id == OBJ_SWITCH) {
+						// Reveal the switch, but DO NOT pay its cost. 
+						// It remains manually payable by the player later.
+						targetObj->isHidden = false; 
+					}
+				}
             }
         }
     }

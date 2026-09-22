@@ -3,28 +3,29 @@
 
 #include "GameObject.hpp"
 
-// Gathers only switches and effects for rendering in the background
+
 inline void getBackgroundDrawListForMap(int targetMapID, GameObject* bgList[], int* count) {
-	*count = 0;
-	GameObject* allObjs = getAllObjects();
-	int totalCount = getObjectCount();
+    *count = 0;
+    GameObject* allObjs = getAllObjects();
+    int totalCount = getObjectCount();
 
-	for (int i = 0; i < totalCount; i++) {
-        if (allObjs[i].mapID != targetMapID) continue; // Skip objects on other maps
+    for (int i = 0; i < totalCount; i++) {
+        if (allObjs[i].mapID != targetMapID) continue;
 
-		if (allObjs[i].id == OBJ_SWITCH || allObjs[i].id == OBJ_EFFECT || allObjs[i].id == OBJ_COLLECTIBLE) {
-			// Skip if collectible has already been picked up
-			if (allObjs[i].id == OBJ_COLLECTIBLE && allObjs[i].isCollected) {
-				continue;
-			}
-			// Add objects to draw in the background
-			bgList[*count] = &allObjs[i];
-			(*count)++;
-		}
-	}
+        if (allObjs[i].id == OBJ_SWITCH || allObjs[i].id == OBJ_EFFECT || allObjs[i].id == OBJ_COLLECTIBLE) {
+            // Skip if collectible has already been picked up
+            if (allObjs[i].id == OBJ_COLLECTIBLE && allObjs[i].isCollected) continue;
+            
+            // Skip if the switch is hidden
+            if (allObjs[i].id == OBJ_SWITCH && allObjs[i].isHidden) continue;
+
+            bgList[*count] = &allObjs[i];
+            (*count)++;
+        }
+    }
 }
 
-// Fills an external array with sorted pointers based strictly on the Y coordinate (except switches and effects)
+
 inline void getSortedDrawListForMap(int targetMapID, GameObject* sortedList[], int* count) {
     *count = 0;
 	GameObject* allObjs = getAllObjects();

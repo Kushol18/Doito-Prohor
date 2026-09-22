@@ -51,7 +51,8 @@ inline void updateCompanion(GameObject* companion, GameObject* player, double sp
             if (sw->mapID != activeMapID) continue;
 
             if (sw->id == OBJ_SWITCH) {
-                if (sw->isCostPaid) continue;
+                // SKIP if the switch cost is already paid OR if the switch is hidden!
+                if (sw->isCostPaid || sw->isHidden) continue;
 
                 double sdx = sw->x - companion->x;
                 double sdy = sw->y - companion->y;

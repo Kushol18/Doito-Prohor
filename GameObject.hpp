@@ -2,7 +2,7 @@
 #define GAME_OBJECT_HPP
 
 
-#define MAX_OBJECTS 100
+#define MAX_OBJECTS 500
 #define MAX_ITEM_TYPES 10
 
 
@@ -42,6 +42,8 @@ struct GameObject {
 	bool isGuiding; // Flag for active tracking mode
 	int miniGameVariant; // 0 = None, 1 = Standard Maze, 2 = One-Way Doors, 3 = Color Match
 
+	bool isHidden; // Track whether the switch is hidden until triggered by another switch
+
 };
 
 
@@ -73,6 +75,7 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
 		objects[objectCount].mapID = 1; 
 		objects[objectCount].isGuiding = false;
 		objects[objectCount].miniGameVariant = 0;
+		objects[objectCount].isHidden = false;
         
         int currentIndex = objectCount;
         objectCount++;

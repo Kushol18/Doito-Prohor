@@ -26,6 +26,9 @@ inline bool checkCollisionForMap(GameObject* self, double targetX, double target
 		// Ignore objects on other maps
 		if (other->mapID != activeMapID) continue;
 
+		// Ignore switches that are hidden
+		if (other->id == OBJ_SWITCH && other->isHidden) continue;
+
 		// If the other object has no collision height, skip it
         if (other->collisionHeight <= 0) continue;
 
