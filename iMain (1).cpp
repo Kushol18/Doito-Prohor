@@ -11,6 +11,7 @@
 #include "CompanionManager.hpp"
 #include "MapLoader.hpp"
 #include "EntranceManager.hpp"
+#include "CombatManager.hpp"
 #include <cstring>
 
 // Stored pointers for direct reference to specific objects

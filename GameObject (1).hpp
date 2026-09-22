@@ -10,7 +10,6 @@
 enum ObjectType {
     OBJ_TREE,
     OBJ_PLAYER,
-    OBJ_ENEMY,
 	OBJ_SWITCH,
 	OBJ_EFFECT,
 	OBJ_COLLECTIBLE,
@@ -46,6 +45,12 @@ struct GameObject {
 
 	bool isHidden; // Track whether the switch is hidden until triggered by another switch
 
+	// --- Health & Combat Fields ---
+    int hp;
+    int maxHp;
+    double invulnerableTimer;
+    bool isDead;
+
 };
 
 
@@ -78,6 +83,11 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
 		objects[objectCount].isGuiding = false;
 		objects[objectCount].miniGameVariant = 0;
 		objects[objectCount].isHidden = false;
+		objects[objectCount].hp = 100;
+		objects[objectCount].maxHp = 100;
+		objects[objectCount].invulnerableTimer = 0.0;
+		objects[objectCount].isDead = false;
+
         
         int currentIndex = objectCount;
         objectCount++;
