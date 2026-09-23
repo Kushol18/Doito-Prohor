@@ -31,6 +31,7 @@ namespace DoitoProhorMenu
     static int mainMenuImg = -1;
     static int storyImg = -1;
     static int creditImg = -1;
+    static int optionsImg = -1;
     static int backOnlyImg = -1;
     static bool imagesLoaded = false;
 
@@ -70,11 +71,13 @@ namespace DoitoProhorMenu
             char mainMenuPath[] = "Image//main_menu.png";
             char storyPath[] = "Image//story.png";
             char creditPath[] = "Image//credit.png";
+            char optionsPath[] = "Image//options.png";
             char backPath[] = "Image//back_only.png";
 
             mainMenuImg = iLoadImage(mainMenuPath);
             storyImg = iLoadImage(storyPath);
             creditImg = iLoadImage(creditPath);
+            optionsImg = iLoadImage(optionsPath);
             backOnlyImg = iLoadImage(backPath);
 			imagesLoaded = true;
 		}
@@ -99,7 +102,7 @@ namespace DoitoProhorMenu
         }
         else if (gameState == OPTIONS_STATE)
         {
-            iShowImage(0, 0, screenWidth, screenHeight, backOnlyImg);
+            iShowImage(0, 0, screenWidth, screenHeight, optionsImg);
         }
         else if (gameState == CREDITS_STATE)
         {
