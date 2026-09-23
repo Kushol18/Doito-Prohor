@@ -134,6 +134,36 @@ public:
         return true;
     }
 
+    inline double distanceToPlayer(GameObject* targetPlayer) const
+    {
+        if (!targetPlayer) return 1.0e9;
+
+        double selfW = (collisionWidth > 0.0) ? collisionWidth : width;
+        double selfH = (collisionHeight > 0.0) ? collisionHeight : height;
+        double targetW = (targetPlayer->collisionWidth > 0.0) ? targetPlayer->collisionWidth : targetPlayer->width;
+        double targetH = (targetPlayer->collisionHeight > 0.0) ? targetPlayer->collisionHeight : targetPlayer->height;
+
+        double selfLeft = x + (width - selfW) * 0.5;
+        double selfRight = selfLeft + selfW;
+        double selfBottom = y;
+        double selfTop = selfBottom + selfH;
+
+        double targetLeft = targetPlayer->x + (targetPlayer->width - targetW) * 0.5;
+        double targetRight = targetLeft + targetW;
+        double targetBottom = targetPlayer->y;
+        double targetTop = targetBottom + targetH;
+
+        double gapX = 0.0;
+        if (selfRight < targetLeft) gapX = targetLeft - selfRight;
+        else if (targetRight < selfLeft) gapX = selfLeft - targetRight;
+
+        double gapY = 0.0;
+        if (selfTop < targetBottom) gapY = targetBottom - selfTop;
+        else if (targetTop < selfBottom) gapY = selfBottom - targetTop;
+
+        return std::sqrt(gapX * gapX + gapY * gapY);
+    }
+
     inline bool update(GameObject* targetPlayer, double deltaTime, int activeMapID)
     {
         if (!isAlive || isHidden || !targetPlayer || targetPlayer->mapID != mapID || mapID != activeMapID)
@@ -152,7 +182,8 @@ public:
         double playerCenterY = targetPlayer->y + targetPlayer->height / 2.0;
         double dx = playerCenterX - enemyCenterX;
         double dy = playerCenterY - enemyCenterY;
-        double distance = std::sqrt(dx * dx + dy * dy);
+        double centerDistance = std::sqrt(dx * dx + dy * dy);
+        double attackDistance = distanceToPlayer(targetPlayer);
 
         if (std::fabs(dx) >= std::fabs(dy))
         {
@@ -164,26 +195,25 @@ public:
         }
 
         bool moving = false;
-        if (distance <= detectionRange && distance > attackRange)
-        {
-            moving = moveTowardsPlayer(dx, dy, distance, activeMapID);
-        }
-        else if (distance <= attackRange && timeSinceLastAttack >= attackCooldown)
-        {
-            timeSinceLastAttack = 0.0;
-            attacking = true;
-            attackFrame = 0;
-            attackCounter = 0;
 
-            int previousHP = targetPlayer->hp;
-            damagePlayer(targetPlayer, attackDamage);
-            if (targetPlayer->hp < previousHP)
+        // Attack range is exactly 48 pixels measured from the nearest edges
+        // of the two collision boxes. This means a player 1 pixel away is
+        // definitely inside the 48-pixel attack range regardless of sprite
+        // height/width.
+        if (attackDistance <= 48.0)
+        {
+            if (timeSinceLastAttack >= attackCooldown)
             {
-                registerHitEffect(targetPlayer->x, targetPlayer->y, activeMapID);
-                Audios::playHit();
+                timeSinceLastAttack = 0.0;
+                attacking = true;
+                attackFrame = 0;
+                attackCounter = 0;
                 return true;
             }
-            return false;
+        }
+        else if (centerDistance <= detectionRange)
+        {
+            moving = moveTowardsPlayer(dx, dy, centerDistance, activeMapID);
         }
 
         if (attacking)
@@ -453,8 +483,33 @@ namespace EnemySystem
     {
         Enemy* e1 = enemyForMap(left);
         Enemy* e2 = enemyForMap(right);
-        if (e1) e1->update(player1, deltaTime, left);
-        if (e2) e2->update(player2, deltaTime, right);
+
+        // Keep player i-frames updating as part of the existing combat loop.
+        updatePlayerCombat(player1, deltaTime);
+        updatePlayerCombat(player2, deltaTime);
+
+        if (e1 && player1 && e1->update(player1, deltaTime, left))
+        {
+            int previousHP = player1->hp;
+            damagePlayer(player1, e1->attackDamage);
+            if (player1->hp < previousHP)
+            {
+                Enemy::registerHitEffect(player1->x, player1->y, left);
+                Audios::playHit();
+            }
+        }
+
+        if (e2 && player2 && e2->update(player2, deltaTime, right))
+        {
+            int previousHP = player2->hp;
+            damagePlayer(player2, e2->attackDamage);
+            if (player2->hp < previousHP)
+            {
+                Enemy::registerHitEffect(player2->x, player2->y, right);
+                Audios::playHit();
+            }
+        }
+
         Enemy::updateHitEffect(deltaTime);
     }
 
