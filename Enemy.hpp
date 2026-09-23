@@ -14,6 +14,10 @@
 class Enemy : public GameObject
 {
 public:
+    static const double ATTACK_DISTANCE;
+    static const double ATTACK_COOLDOWN;
+    static const double PLAYER_INVULNERABILITY_TIME;
+
     int attackDamage;
     double moveSpeed;
     double detectionRange;
@@ -38,76 +42,97 @@ public:
     Enemy()
     {
         id = OBJ_OBSTACLES;
-        x = y = 0;
+        x = 0.0;
+        y = 0.0;
+        spawnX = 0.0;
+        spawnY = 0.0;
         imgIndex = -1;
         width = 38;
         height = 58;
         collisionWidth = 30;
         collisionHeight = 44;
-        hp = maxHp = 100;
+        hp = 100;
+        maxHp = 100;
         invulnerableTimer = 0.0;
         isDead = false;
+        isHidden = false;
         attackDamage = 20;
-        moveSpeed = 2.0;
-        detectionRange = 300.0;
-        attackRange = 48.0;
-        attackCooldown = 1.0;
-        timeSinceLastAttack = 1.0;
+        moveSpeed = 1.7;
+        detectionRange = 320.0;
+        attackRange = ATTACK_DISTANCE;
+        attackCooldown = ATTACK_COOLDOWN;
+        timeSinceLastAttack = ATTACK_COOLDOWN;
         isAlive = true;
         blockChance = 0.25;
-        frame = frameCounter = 0;
-        attackFrame = attackCounter = 0;
+        frame = 0;
+        frameCounter = 0;
+        attackFrame = 0;
+        attackCounter = 0;
         attacking = false;
         facing = DOWN;
         lastMoveDirection = DOWN;
-        spawnX = 0.0;
-        spawnY = 0.0;
-        for (int r = 0; r < 4; ++r)
-            for (int c = 0; c < 3; ++c) frames[r][c] = -1;
-        for (int c = 0; c < 4; ++c) { attackLeft[c] = -1; attackRight[c] = -1; }
+
+        int r, c;
+        for (r = 0; r < 4; ++r)
+            for (c = 0; c < 3; ++c)
+                frames[r][c] = -1;
+        for (c = 0; c < 4; ++c)
+        {
+            attackLeft[c] = -1;
+            attackRight[c] = -1;
+        }
     }
 
-    inline void resetCombatState()
-    {
-        hp = maxHp = 100;
-        invulnerableTimer = 0.0;
-        isDead = false;
-        isAlive = true;
-        isHidden = false;
-        timeSinceLastAttack = attackCooldown;
-        frame = frameCounter = 0;
-        attackFrame = attackCounter = 0;
-        attacking = false;
-        facing = DOWN;
-        lastMoveDirection = DOWN;
-        x = spawnX;
-        y = spawnY;
-    }
-
-    inline void init(double startX, double startY, int map, int damage, double blockPercent)
+    void init(double startX, double startY, int map, int damage, double blockPercent)
     {
         x = startX;
         y = startY;
         spawnX = startX;
         spawnY = startY;
         mapID = map;
-        hp = maxHp = 100;
+        hp = 100;
+        maxHp = 100;
         attackDamage = damage;
-        attackRange = 48.0;
-        attackCooldown = 1.0;
-        timeSinceLastAttack = 1.0;
-        moveSpeed = 1.7;
-        detectionRange = 320.0;
-        blockChance = blockPercent;
+        attackRange = ATTACK_DISTANCE;
+        attackCooldown = ATTACK_COOLDOWN;
+        timeSinceLastAttack = ATTACK_COOLDOWN;
         isAlive = true;
         isHidden = false;
         isDead = false;
         invulnerableTimer = 0.0;
+        blockChance = blockPercent;
+        frame = 0;
+        frameCounter = 0;
+        attackFrame = 0;
+        attackCounter = 0;
+        attacking = false;
+        facing = DOWN;
+        lastMoveDirection = DOWN;
     }
 
-    inline bool tryTakeDamage(int amount, double effectX, double effectY)
+    void resetCombatState()
     {
-        if (!isAlive || isDead || invulnerableTimer > 0.0) return false;
+        x = spawnX;
+        y = spawnY;
+        hp = maxHp = 100;
+        invulnerableTimer = 0.0;
+        isDead = false;
+        isAlive = true;
+        isHidden = false;
+        timeSinceLastAttack = attackCooldown;
+        frame = 0;
+        frameCounter = 0;
+        attackFrame = 0;
+        attackCounter = 0;
+        attacking = false;
+        facing = DOWN;
+        lastMoveDirection = DOWN;
+    }
+
+    bool tryTakeDamage(int amount, double effectX, double effectY)
+    {
+        if (!isAlive || isDead || invulnerableTimer > 0.0)
+            return false;
 
         double roll = (double)rand() / (double)RAND_MAX;
         if (roll < blockChance)
@@ -134,9 +159,17 @@ public:
         return true;
     }
 
-    inline double distanceToPlayer(GameObject* targetPlayer) const
+    void takeDamage(int amount)
     {
-        if (!targetPlayer) return 1.0e9;
+        tryTakeDamage(amount, x, y + height * 0.5);
+    }
+
+    // Distance between the nearest edges of the enemy/player collision boxes.
+    // This keeps the requested attack range exactly 48 pixels and avoids
+    // sprite-center distance being affected by different sprite sizes.
+    double distanceToPlayer(GameObject* targetPlayer) const
+    {
+        if (!targetPlayer) return 1000000000.0;
 
         double selfW = (collisionWidth > 0.0) ? collisionWidth : width;
         double selfH = (collisionHeight > 0.0) ? collisionHeight : height;
@@ -164,7 +197,7 @@ public:
         return std::sqrt(gapX * gapX + gapY * gapY);
     }
 
-    inline bool update(GameObject* targetPlayer, double deltaTime, int activeMapID)
+    bool update(GameObject* targetPlayer, double deltaTime, int activeMapID)
     {
         if (!isAlive || isHidden || !targetPlayer || targetPlayer->mapID != mapID || mapID != activeMapID)
             return false;
@@ -174,33 +207,27 @@ public:
             invulnerableTimer -= deltaTime;
             if (invulnerableTimer < 0.0) invulnerableTimer = 0.0;
         }
+
         timeSinceLastAttack += deltaTime;
 
-        double enemyCenterX = x + width / 2.0;
-        double enemyCenterY = y + height / 2.0;
-        double playerCenterX = targetPlayer->x + targetPlayer->width / 2.0;
-        double playerCenterY = targetPlayer->y + targetPlayer->height / 2.0;
+        double enemyCenterX = x + width * 0.5;
+        double enemyCenterY = y + height * 0.5;
+        double playerCenterX = targetPlayer->x + targetPlayer->width * 0.5;
+        double playerCenterY = targetPlayer->y + targetPlayer->height * 0.5;
         double dx = playerCenterX - enemyCenterX;
         double dy = playerCenterY - enemyCenterY;
         double centerDistance = std::sqrt(dx * dx + dy * dy);
         double attackDistance = distanceToPlayer(targetPlayer);
 
         if (std::fabs(dx) >= std::fabs(dy))
-        {
-            facing = dx >= 0.0 ? RIGHT : LEFT;
-        }
+            facing = (dx >= 0.0) ? RIGHT : LEFT;
         else
-        {
-            facing = dy >= 0.0 ? UP : DOWN;
-        }
+            facing = (dy >= 0.0) ? UP : DOWN;
 
         bool moving = false;
 
-        // Attack range is exactly 48 pixels measured from the nearest edges
-        // of the two collision boxes. This means a player 1 pixel away is
-        // definitely inside the 48-pixel attack range regardless of sprite
-        // height/width.
-        if (attackDistance <= 48.0)
+        // EXACTLY 48 pixels of attack reach.
+        if (attackDistance <= ATTACK_DISTANCE)
         {
             if (timeSinceLastAttack >= attackCooldown)
             {
@@ -208,6 +235,9 @@ public:
                 attacking = true;
                 attackFrame = 0;
                 attackCounter = 0;
+
+                // Return an attack event. EnemySystem applies the actual
+                // player damage after this function returns.
                 return true;
             }
         }
@@ -218,7 +248,8 @@ public:
 
         if (attacking)
         {
-            if (++attackCounter >= 5)
+            ++attackCounter;
+            if (attackCounter >= 5)
             {
                 attackCounter = 0;
                 ++attackFrame;
@@ -232,11 +263,13 @@ public:
 
         if (moving)
         {
-            if (++frameCounter >= 7)
+            ++frameCounter;
+            if (frameCounter >= 7)
             {
                 frameCounter = 0;
                 frame = (frame + 1) % 3;
             }
+            lastMoveDirection = facing;
         }
         else
         {
@@ -244,11 +277,10 @@ public:
             frame = 0;
         }
 
-        lastMoveDirection = facing;
         return false;
     }
 
-    inline void draw(int activeMapID)
+    void draw(int activeMapID)
     {
         if (!isAlive || isHidden || mapID != activeMapID) return;
 
@@ -263,8 +295,9 @@ public:
         if (texture >= 0)
             iShowImage((int)x, (int)y, (int)width, (int)height, (unsigned int)texture);
 
-        double ratio = maxHp > 0 ? (double)hp / (double)maxHp : 0.0;
+        double ratio = (maxHp > 0) ? (double)hp / (double)maxHp : 0.0;
         if (ratio < 0.0) ratio = 0.0;
+        if (ratio > 1.0) ratio = 1.0;
         iSetColor(35, 35, 35);
         iFilledRectangle((int)x, (int)y + (int)height + 4, (int)width, 5);
         iSetColor(220, 40, 40);
@@ -301,14 +334,6 @@ public:
         return (int)iLoadImage(buffer);
     }
 
-    // Compatibility helper for the project's previous CombatManager API.
-    inline void takeDamage(int amount)
-    {
-        tryTakeDamage(amount, x, y + height * 0.5);
-    }
-
-    // Shared hit-effect storage is public so EnemySystem can reset/load it
-    // without creating another effect system.
     static double hitX;
     static double hitY;
     static int hitMapID;
@@ -319,7 +344,7 @@ private:
     double spawnX;
     double spawnY;
 
-    inline bool moveTowardsPlayer(double dx, double dy, double distance, int activeMapID)
+    bool moveTowardsPlayer(double dx, double dy, double distance, int activeMapID)
     {
         if (distance <= 0.0) return false;
 
@@ -348,6 +373,9 @@ private:
     }
 };
 
+const double Enemy::ATTACK_DISTANCE = 48.0;
+const double Enemy::ATTACK_COOLDOWN = 1.0;
+const double Enemy::PLAYER_INVULNERABILITY_TIME = 0.8;
 double Enemy::hitX = 0.0;
 double Enemy::hitY = 0.0;
 int Enemy::hitMapID = -1;
@@ -364,7 +392,7 @@ namespace EnemySystem
     static int attackLeftTextures[4];
     static int attackRightTextures[4];
 
-    inline void loadAssets()
+    void loadAssets()
     {
         if (assetsLoaded) return;
 
@@ -381,7 +409,8 @@ namespace EnemySystem
         enemyTextures[Enemy::RIGHT][1] = Enemy::loadImage("Image//er2.png");
         enemyTextures[Enemy::RIGHT][2] = Enemy::loadImage("Image//er3.png");
 
-        for (int i = 0; i < 4; ++i)
+        int i;
+        for (i = 0; i < 4; ++i)
         {
             char path[64];
             std::sprintf(path, "Image//ela%d.png", i + 1);
@@ -394,39 +423,38 @@ namespace EnemySystem
         assetsLoaded = true;
     }
 
-    inline bool validSpawnPosition(Enemy* enemy, double x, double y, int mapID)
+    void assignAssets(Enemy* enemy)
     {
-        return !checkCollisionForMap(enemy, x, y, mapID);
+        int r, c;
+        for (r = 0; r < 4; ++r)
+            for (c = 0; c < 3; ++c)
+                enemy->frames[r][c] = enemyTextures[r][c];
+        for (c = 0; c < 4; ++c)
+        {
+            enemy->attackLeft[c] = attackLeftTextures[c];
+            enemy->attackRight[c] = attackRightTextures[c];
+        }
     }
 
-    inline void chooseSpawn(Enemy* enemy, int mapID, double xOff)
+    bool validSpawnPosition(Enemy* enemy, double startX, double startY, int mapID)
     {
-        for (int attempt = 0; attempt < 500; ++attempt)
+        enemy->mapID = mapID;
+        return !checkCollisionForMap(enemy, startX, startY, mapID);
+    }
+
+    void chooseSpawn(Enemy* enemy, int mapID, double xOff)
+    {
+        int attempt;
+        for (attempt = 0; attempt < 500; ++attempt)
         {
-            double x = xOff + 90.0 + (double)(rand() % 650);
-            double y = 80.0 + (double)(rand() % 460);
-            if (validSpawnPosition(enemy, x, y, mapID))
+            double startX = xOff + 90.0 + (double)(rand() % 650);
+            double startY = 80.0 + (double)(rand() % 460);
+            if (validSpawnPosition(enemy, startX, startY, mapID))
             {
-                enemy->init(x, y, mapID,
+                enemy->init(startX, startY, mapID,
                             (mapID == 102 || mapID == 105) ? 20 : 10,
                             (mapID == 103 || mapID == 106) ? 0.45 : 0.25);
-                enemy->frames[0][0] = enemyTextures[0][0];
-                enemy->frames[0][1] = enemyTextures[0][1];
-                enemy->frames[0][2] = enemyTextures[0][2];
-                enemy->frames[1][0] = enemyTextures[1][0];
-                enemy->frames[1][1] = enemyTextures[1][1];
-                enemy->frames[1][2] = enemyTextures[1][2];
-                enemy->frames[2][0] = enemyTextures[2][0];
-                enemy->frames[2][1] = enemyTextures[2][1];
-                enemy->frames[2][2] = enemyTextures[2][2];
-                enemy->frames[3][0] = enemyTextures[3][0];
-                enemy->frames[3][1] = enemyTextures[3][1];
-                enemy->frames[3][2] = enemyTextures[3][2];
-                for (int i = 0; i < 4; ++i)
-                {
-                    enemy->attackLeft[i] = attackLeftTextures[i];
-                    enemy->attackRight[i] = attackRightTextures[i];
-                }
+                assignAssets(enemy);
                 return;
             }
         }
@@ -434,9 +462,10 @@ namespace EnemySystem
         enemy->init(xOff + 200.0, 120.0, mapID,
                     (mapID == 102 || mapID == 105) ? 20 : 10,
                     (mapID == 103 || mapID == 106) ? 0.45 : 0.25);
+        assignAssets(enemy);
     }
 
-    inline void initialize()
+    void initialize()
     {
         loadAssets();
         if (initialized) return;
@@ -448,7 +477,7 @@ namespace EnemySystem
         initialized = true;
     }
 
-    inline void resetSession()
+    void resetSession()
     {
         if (!initialized) initialize();
         chooseSpawn(&enemies[0], 102, 40.0);
@@ -458,14 +487,15 @@ namespace EnemySystem
         Enemy::hitTimer = 0.0;
     }
 
-    inline Enemy* enemyForMap(int mapID)
+    Enemy* enemyForMap(int mapID)
     {
-        for (int i = 0; i < ENEMY_COUNT; ++i)
+        int i;
+        for (i = 0; i < ENEMY_COUNT; ++i)
             if (enemies[i].mapID == mapID) return &enemies[i];
         return 0;
     }
 
-    inline void playerAttack(GameObject* player)
+    void playerAttack(GameObject* player)
     {
         if (!player || !player->hasSword) return;
 
@@ -479,41 +509,60 @@ namespace EnemySystem
         }
     }
 
-    inline void update(GameObject* player1, GameObject* player2, double deltaTime, int left, int right)
+    // Centralized damage application. The player invulnerability timer is
+    // explicitly counted down here, so a successful first hit cannot make
+    // subsequent enemy hits permanently ineffective.
+    bool applyEnemyDamage(GameObject* player, Enemy* enemy)
+    {
+        if (!player || !enemy || !enemy->isAlive) return false;
+
+        if (player->invulnerableTimer > 0.0)
+            return false;
+
+        int previousHP = player->hp;
+        damagePlayer(player, enemy->attackDamage);
+
+        // Guarantee the cooldown exists even when the project's older
+        // PlayerCombat implementation does not set it itself.
+        player->invulnerableTimer = Enemy::PLAYER_INVULNERABILITY_TIME;
+
+        if (player->hp < previousHP)
+        {
+            Enemy::registerHitEffect(player->x, player->y, player->mapID);
+            Audios::playHit();
+            return true;
+        }
+        return false;
+    }
+
+    void update(GameObject* player1, GameObject* player2, double deltaTime, int left, int right)
     {
         Enemy* e1 = enemyForMap(left);
         Enemy* e2 = enemyForMap(right);
 
-        // Keep player i-frames updating as part of the existing combat loop.
-        updatePlayerCombat(player1, deltaTime);
-        updatePlayerCombat(player2, deltaTime);
+        // Explicitly maintain player damage cooldowns here. This does not
+        // replace PlayerCombat; it makes enemy damage independent of it.
+        if (player1 && player1->invulnerableTimer > 0.0)
+        {
+            player1->invulnerableTimer -= deltaTime;
+            if (player1->invulnerableTimer < 0.0) player1->invulnerableTimer = 0.0;
+        }
+        if (player2 && player2->invulnerableTimer > 0.0)
+        {
+            player2->invulnerableTimer -= deltaTime;
+            if (player2->invulnerableTimer < 0.0) player2->invulnerableTimer = 0.0;
+        }
 
         if (e1 && player1 && e1->update(player1, deltaTime, left))
-        {
-            int previousHP = player1->hp;
-            damagePlayer(player1, e1->attackDamage);
-            if (player1->hp < previousHP)
-            {
-                Enemy::registerHitEffect(player1->x, player1->y, left);
-                Audios::playHit();
-            }
-        }
+            applyEnemyDamage(player1, e1);
 
         if (e2 && player2 && e2->update(player2, deltaTime, right))
-        {
-            int previousHP = player2->hp;
-            damagePlayer(player2, e2->attackDamage);
-            if (player2->hp < previousHP)
-            {
-                Enemy::registerHitEffect(player2->x, player2->y, right);
-                Audios::playHit();
-            }
-        }
+            applyEnemyDamage(player2, e2);
 
         Enemy::updateHitEffect(deltaTime);
     }
 
-    inline void draw(int left, int right)
+    void draw(int left, int right)
     {
         Enemy* e1 = enemyForMap(left);
         Enemy* e2 = enemyForMap(right);
