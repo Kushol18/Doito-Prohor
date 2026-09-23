@@ -47,14 +47,14 @@ namespace PetAnimation
         p1Frames[DOWN][1] = loadImage("Image//p1p1f2.png");
         p1Frames[DOWN][2] = loadImage("Image//p1p1f3.png");
         p1Frames[DOWN][3] = loadImage("Image//p1p1f4.png");
-        p1Frames[LEFT][0] = loadImage("Image//p1p1l1.png");
-        p1Frames[LEFT][1] = loadImage("Image//p1p1l2.png");
-        p1Frames[LEFT][2] = loadImage("Image//p1p1l3.png");
-        p1Frames[LEFT][3] = loadImage("Image//p1p1l4.png");
-        p1Frames[RIGHT][0] = loadImage("Image//p1p1r1.png");
-        p1Frames[RIGHT][1] = loadImage("Image//p1p1r2.png");
-        p1Frames[RIGHT][2] = loadImage("Image//p1p1r13.png");
-        p1Frames[RIGHT][3] = loadImage("Image//p1p1r4.png");
+        p1Frames[LEFT][0] = loadImage("Image//p1p1r1.png");
+        p1Frames[LEFT][1] = loadImage("Image//p1p1r2.png");
+        p1Frames[LEFT][2] = loadImage("Image//p1p1r3.png");
+        p1Frames[LEFT][3] = loadImage("Image//p1p1r4.png");
+        p1Frames[RIGHT][0] = loadImage("Image//p1p1l1.png");
+        p1Frames[RIGHT][1] = loadImage("Image//p1p1l2.png");
+        p1Frames[RIGHT][2] = loadImage("Image//p1p1rl3.png");
+        p1Frames[RIGHT][3] = loadImage("Image//p1p1l4.png");
 
         p2Frames[UP][0] = loadImage("Image//p2p2b1.png");
         p2Frames[UP][1] = loadImage("Image//p2p2b2.png");

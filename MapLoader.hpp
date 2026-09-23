@@ -268,7 +268,7 @@ inline void loadAllGameMaps() {
     food2->itemType = 1;
     food2->mapID = 1;
 
-    loadedCompanionP1 = createObject(OBJ_COMPANION, 300, 400, wolfImg, 34, 58, 20, 10, -1);
+    loadedCompanionP1 = createObject(OBJ_COMPANION, 300, 400, wolfImg, 25, 45, 20, 10, -1);
     loadedCompanionP1->isTamed = false;
     loadedCompanionP1->requiredItemType = 1;
     loadedCompanionP1->requiredAmount = 1;
@@ -331,13 +331,13 @@ inline void loadAllGameMaps() {
     entrance4->requiredItemType = 0;
     entrance4->requiredAmount = 0;
 
-    loadedCompanionP2 = createObject(OBJ_COMPANION, 1200, 400, wolfImg, 34, 58, 20, 10, -1);
+    loadedCompanionP2 = createObject(OBJ_COMPANION, 1200, 400, wolfImg, 25, 45, 20, 10, -1);
     loadedCompanionP2->isTamed = false;
     loadedCompanionP2->requiredItemType = 1;
     loadedCompanionP2->requiredAmount = 1;
     loadedCompanionP2->mapID = 10;
 
-    spawnNaturalClustersForMap(10, cactus, minicactus, 70, 100, 26, 15, 40, 40, 20, 20, 8, 12, 920.0, 650.0, 960.0);
+    spawnNaturalClustersForMap(10, cactus, minicactus, 70, 100, 26, 15, 40, 40, 0, 0, 8, 12, 920.0, 650.0, 960.0);
     
 
     // --- P2 Map 11 (mapID = 11) ---
@@ -354,7 +354,7 @@ inline void loadAllGameMaps() {
     entrance5->requiredItemType = 0;
     entrance5->requiredAmount = 5;
 
-    spawnNaturalClustersForMap(11, cactus, minicactus, 70, 100, 26, 15, 40, 40, 20, 20, 7, 13, 920.0, 650.0, 960.0);
+    spawnNaturalClustersForMap(11, cactus, minicactus, 70, 100, 26, 15, 40, 40, 0, 0, 7, 13, 920.0, 650.0, 960.0);
 
 
     // --- P2 Map 12 (mapID = 12) ---
@@ -370,7 +370,7 @@ inline void loadAllGameMaps() {
     GameObject* invi1 = createObject(OBJ_OBSTACLES, 1590, 0, entranceImg, 310, 700, 350, 700, -1);
     invi1->mapID = 12;
 
-    spawnNaturalClustersForMap(12, cactus, minicactus, 70, 100, 26, 15, 40, 40, 20, 20, 6, 7, 920.0, 650.0, 960.0);
+    spawnNaturalClustersForMap(12, cactus, minicactus, 70, 100, 26, 15, 40, 40, 0, 0, 6, 7, 920.0, 650.0, 960.0);
 
 
     // --- P2 Map 13 (mapID = 13) ---
@@ -383,7 +383,7 @@ inline void loadAllGameMaps() {
     GameObject* invi2 = createObject(OBJ_OBSTACLES, 1590, 0, entranceImg, 310, 700, 350, 700, -1);
     invi2->mapID = 13;
 
-    spawnNaturalClustersForMap(13, cactus, minicactus, 70, 100, 26, 15, 40, 40, 20, 20, 7, 6, 920.0, 650.0, 960);
+    spawnNaturalClustersForMap(13, cactus, minicactus, 70, 100, 26, 15, 40, 40, 0, 0, 7, 6, 920.0, 650.0, 960);
 
 
     // Effect of Switch Chain 1
