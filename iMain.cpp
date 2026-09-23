@@ -12,6 +12,12 @@
 #include "MapLoader.hpp"
 #include "EntranceManager.hpp"
 #include "CombatManager.hpp"
+#include "Stopwatch.hpp"
+#include "Player_Weapon.hpp"
+#include "PlayerHealth.hpp"
+#include "GameEnd.hpp"
+#include "Audios.hpp"
+#include "PetAnimation.hpp"
 #include <cstring>
 
 // Stored pointers for direct reference to specific objects
@@ -96,11 +102,22 @@ void resetGameSession()
     wolf1 = loadedCompanionP1;
     wolf2 = loadedCompanionP2;
 
+    randomizeExistingMazeCollectibles();
     PlayerAnimation::reset();
-
-	// Reset entrance & ruin completion flags
+    PlayerWeapon::reset();
+    PlayerHealth::reset();
+    PlayerHealth::initPlayer(player1);
+    PlayerHealth::initPlayer(player2);
+    EnemySystem::resetSession();
+    PetAnimation::reset(wolf1, wolf2);
     resetEntranceState();
+    resetSpecialInteractionState();
+    GameEnd::resetSession();
+    Stopwatch::reset();
+    Stopwatch::start();
 
+    Audios::stopAll();
+    Audios::playGameplayBackground();
 }
 
 void mapLoader1(){
@@ -150,6 +167,27 @@ void mapLoader2(){
 void iDraw(){
 
     iClear();
+
+    if (gameState == GameEnd::MESSAGE_STATE)
+    {
+        GameEnd::drawMessage(screenWidth, screenHeight);
+        return;
+    }
+    if (gameState == GameEnd::GAME_WIN_STATE)
+    {
+        GameEnd::drawWin(screenWidth, screenHeight);
+        return;
+    }
+    if (gameState == GameEnd::GAME_OVER_STATE)
+    {
+        GameEnd::drawGameOver(screenWidth, screenHeight);
+        return;
+    }
+    if (gameState == GameEnd::CREDITS_SCROLL_STATE)
+    {
+        GameEnd::drawCreditsScroll(screenWidth, screenHeight);
+        return;
+    }
 
     if (DoitoProhorMenu::isMenuState(gameState))
     {
@@ -222,7 +260,10 @@ void iDraw(){
             }
         }
 
-
+        // New combat/health/pet layers use the existing map coordinates and
+        // collision system; they do not replace the existing draw lists.
+        CombatManager::drawAll(left, right);
+        PlayerHealth::draw(player1, player2, screen1X, screen2X, screen1Y + screenH + 3);
         CollectablesCount::draw();
 
         // The pause button is visible only during active gameplay.
@@ -257,6 +298,20 @@ void iPassiveMouseMove(int mx, int my) {}
 void iMouse(int button, int state, int mx, int my) {
 
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+
+        if (gameState == GameEnd::MESSAGE_STATE)
+        {
+            GameEnd::handleMessageClick(gameState, mx, my);
+            return;
+        }
+        if (gameState == GameEnd::GAME_OVER_STATE)
+        {
+            if (GameEnd::handleGameOverClick(gameState, mx, my)) return;
+        }
+        if (gameState == GameEnd::GAME_WIN_STATE || gameState == GameEnd::CREDITS_SCROLL_STATE)
+        {
+            return;
+        }
 
         if (gameState == PauseMenu::PAUSED_STATE)
         {
@@ -308,9 +363,9 @@ void fixedUpdate() {
         return;
     }
 
-    // A pause freezes all gameplay updates, including keyboard-driven movement
-    // and animation.
-	if (gameState != DoitoProhorMenu::PLAY_STATE) return;
+    // A pause/message/end state freezes all gameplay updates, including
+    // keyboard-driven movement and animation.
+    if (gameState != DoitoProhorMenu::PLAY_STATE) return;
 
 	// ==========================================
     // PLAYER 1 MOVEMENT & MAP TRANSITIONS
@@ -390,6 +445,8 @@ void fixedUpdate() {
             }
         }
     }
+
+    if (gameState != DoitoProhorMenu::PLAY_STATE) return;
 
     // ==========================================
     // PLAYER 2 MOVEMENT & MAP TRANSITIONS
@@ -474,9 +531,11 @@ void fixedUpdate() {
 
 // This function runs automatically every time the timer fires
 void gameLoopUpdate() {
-    // FUTURE GAME COMPLETION LOGIC:
-    // Set game_completion = true and provide the real elapsed time through
-    // completionTimeSeconds when the actual game-winning condition is implemented.
+    // Terminal sequences (portal wait, win->credits transition, credits scroll)
+    // continue even when normal gameplay simulation is frozen.
+    GameEnd::updateTerminalSequence();
+
+    // Leaderboard persistence uses the existing player_data.txt pipeline.
     Leaderboard::saveIfCompleted(
         game_completion,
         completionTimeSeconds,
@@ -485,16 +544,39 @@ void gameLoopUpdate() {
         PlayerData::player2Name
     );
 
-	// Companion updates must stop while the game is paused.
     if (gameState != DoitoProhorMenu::PLAY_STATE)
     {
         return;
     }
 
+    // Existing companion following remains the source of movement/collision;
+    // the new pet header only changes its visual frames.
     updateCompanion(wolf1, player1, 3.0, left);
     updateCompanion(wolf2, player2, 3.0, right);
+    PetAnimation::update(wolf1, wolf2);
 
-	updateSpecialInteractions(); // Checks boat, pond, backup switch unlock, and message bottle continuously
+    // Shared Bandage input and sword animation/attack edge detection.
+    PlayerHealth::updateConsumableInput(player1, player2);
+    PlayerWeapon::update(player1, true);
+    PlayerWeapon::update(player2, false);
+
+    if (PlayerWeapon::consumeAttackRequest(true))
+        CombatManager::handlePlayerSwordAttack(player1);
+    if (PlayerWeapon::consumeAttackRequest(false))
+        CombatManager::handlePlayerSwordAttack(player2);
+
+    // Existing CombatManager/EnemySystem pathfinding and damage rules.
+    CombatManager::updateAll(player1, player2, left, right, 0.010);
+
+    // Existing special interactions remain in place; reward screens simply
+    // freeze simulation through GameEnd::showRewardMessage().
+    updateSpecialInteractions();
+    if (gameState != DoitoProhorMenu::PLAY_STATE) return;
+
+    GameEnd::checkGameOver();
+    if (gameState != DoitoProhorMenu::PLAY_STATE) return;
+
+    GameEnd::checkFinalPortalActivation();
 }
 
 
@@ -509,6 +591,11 @@ int main(){
     PauseMenu::initialize();
     PlayerAnimation::initialize();
     CollectablesCount::initialize();
+    PlayerWeapon::initialize();
+    PlayerHealth::initialize();
+    PetAnimation::initialize();
+    GameEnd::initialize();
+    Audios::initialize();
 
     // Image
     // Title
@@ -546,8 +633,15 @@ int main(){
     wolf1 = loadedCompanionP1;
     wolf2 = loadedCompanionP2;
 
+    EnemySystem::initialize();
+    PlayerHealth::initPlayer(player1);
+    PlayerHealth::initPlayer(player2);
+    PetAnimation::reset(wolf1, wolf2);
+
     // Save the original gameplay snapshot for future Main Menu -> Play resets.
     captureInitialGameState();
+    Audios::stopAll();
+    Audios::playMenu();
 
     iStart();
     return 0;

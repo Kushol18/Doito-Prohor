@@ -3,6 +3,8 @@
 
 #include "MainMenu.hpp"
 #include "iGraphics.h"
+#include "Stopwatch.hpp"
+#include "Audios.hpp"
 
 namespace PauseMenu
 {
@@ -66,6 +68,7 @@ namespace PauseMenu
         if (DoitoProhorMenu::isInsideButton(pauseButton, mx, my))
         {
             gameState = PAUSED_STATE;
+            Stopwatch::pause();
             return true;
         }
 
@@ -84,10 +87,14 @@ namespace PauseMenu
         if (DoitoProhorMenu::isInsideButton(resumeButton, mx, my))
         {
             gameState = DoitoProhorMenu::PLAY_STATE;
+            Stopwatch::resume();
         }
         else if (DoitoProhorMenu::isInsideButton(mainMenuButton, mx, my))
         {
             gameState = DoitoProhorMenu::MAIN_MENU_STATE;
+            Stopwatch::stopPermanent();
+            Audios::stopGameplayBackground();
+            Audios::playMenu();
         }
     }
 }

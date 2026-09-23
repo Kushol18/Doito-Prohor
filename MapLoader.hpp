@@ -7,6 +7,7 @@
 #include "iGraphics.h"
 #include "MazeManager.hpp"
 #include "CollisionManager.hpp"
+#include "GameEnd.hpp"
 
 extern GameObject* player1;
 extern GameObject* player2;
@@ -37,6 +38,16 @@ static GameObject* swcB_3_Obj = nullptr;
 
 
 // -----------------------------------------------------------------------------
+// SESSION RESET
+// -----------------------------------------------------------------------------
+inline void resetSpecialInteractionState() {
+    isBoatRewardClaimed = false;
+    isPondRewardClaimed = false;
+    totalSwitchesActivated = 0;
+    isBackupChainActive = false;
+}
+
+// -----------------------------------------------------------------------------
 // SPECIAL INTERACTION FUNCTIONS
 // -----------------------------------------------------------------------------
 inline void checkBackupSwitchUnlock() {
@@ -56,6 +67,7 @@ inline void updateSpecialInteractions() {
             globalInventory[1] += 5;
             globalInventory[0] += 9;
             isBoatRewardClaimed = true;
+            Audios::playCollectible();
         }
     }
 
@@ -64,6 +76,7 @@ inline void updateSpecialInteractions() {
         if (player1->mapID == statueObj->mapID && checkCollision(player1, statueObj)) {
             globalInventory[0] += 8;
             isPondRewardClaimed = true;
+            Audios::playCollectible();
         }
     }
 
@@ -75,6 +88,8 @@ inline void updateSpecialInteractions() {
         if (player2->mapID == msgBottleObj->mapID && checkCollision(player2, msgBottleObj)) {
             globalInventory[0] += 5;
             msgBottleObj->isHidden = true;
+            Audios::playCollectible();
+            GameEnd::showRewardMessage();
 
             if (swcB_1_Obj) swcB_1_Obj->isHidden = true;
             if (swcB_2_Obj) swcB_2_Obj->isHidden = true;

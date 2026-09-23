@@ -2,9 +2,9 @@
 #define COLLISION_MANAGER_HPP
 
 #include "GameObject.hpp"
+#include "Audios.hpp"
+#include "GameEnd.hpp"
 
-
-// 3-Argument version with custom touch margin
 inline bool checkCollision(GameObject* a, GameObject* b, double margin) {
     if (!a || !b) return false;
     if (a->isHidden || b->isHidden) return false;
@@ -28,26 +28,23 @@ inline bool checkCollision(GameObject* a, GameObject* b, double margin) {
     double bBottom = b->y;
     double bTop    = b->y + bH;
 
-    return (aLeft <= bRight + margin && 
+    return (aLeft <= bRight + margin &&
             aRight >= bLeft - margin &&
-            aBottom <= bTop + margin && 
+            aBottom <= bTop + margin &&
             aTop >= bBottom - margin);
 }
 
-// 2-Argument default overload (calls 3-arg version with 4.0 margin)
 inline bool checkCollision(GameObject* a, GameObject* b) {
     return checkCollision(a, b, 4.0);
 }
 
-
-// Checks if a given bounding box collides with any other solid object in the world
 inline bool checkCollisionForMap(GameObject* self, double targetX, double targetY, int activeMapID) {
-    // Center-based X bounds for 'self'
+    if (!self) return false;
+
     double selfColWidth = (self->collisionWidth > 0 ? self->collisionWidth : self->width);
     double selfCenterX = targetX + (self->width / 2.0);
     double selfLeft = selfCenterX - (selfColWidth / 2.0);
     double selfRight = selfCenterX + (selfColWidth / 2.0);
-
     double selfBottom = targetY;
     double selfTop = targetY + (self->collisionHeight > 0 ? self->collisionHeight : self->height);
 
@@ -56,49 +53,30 @@ inline bool checkCollisionForMap(GameObject* self, double targetX, double target
 
     for (int i = 0; i < count; i++) {
         GameObject* other = &allObjects[i];
-
-		// Do not check collision against itself
         if (other == self) continue;
-
-		// Ignore objects on other maps
-		if (other->mapID != activeMapID) continue;
-
-		// Ignore switches that are hidden
-		if (other->id == OBJ_SWITCH && other->isHidden) continue;
-
-		// If the other object has no collision height, skip it
+        if (other->mapID != activeMapID) continue;
+        if (other->id == OBJ_SWITCH && other->isHidden) continue;
         if (other->collisionHeight <= 0) continue;
+        if (other->id == OBJ_EFFECT && !other->isActivated) continue;
+        if (other->id == OBJ_COLLECTIBLE || other->id == OBJ_ENTRANCE || other->id == OBJ_EXIT) continue;
 
-		// If it is an effect object & it is not active, skip it
-        if (other->id == OBJ_EFFECT) {
-            if (!other->isActivated) {
-                continue; 
-            }
-        }
-
-		// Calculate the other object's collision box (from base Y up to collisionHeight)
-        // Center-based X bounds for 'other'
         double otherColWidth = (other->collisionWidth > 0 ? other->collisionWidth : other->width);
         double otherCenterX = other->x + (other->width / 2.0);
         double otherLeft = otherCenterX - (otherColWidth / 2.0);
         double otherRight = otherCenterX + (otherColWidth / 2.0);
-
         double otherBottom = other->y;
         double otherTop = other->y + other->collisionHeight;
 
-		// Standard AABB Collision Check
         if (selfLeft < otherRight && selfRight > otherLeft &&
             selfBottom < otherTop && selfTop > otherBottom) {
-            return true; // Collision detected 
+            return true;
         }
     }
-    return false; // No collision 
+    return false;
 }
 
-
-// Collectible collision handler mapping to item type inventory
 inline void handleCollectibleCollisionsForMap(GameObject* player, int activeMapID) {
-    if (player == 0) return;
+    if (!player) return;
 
     double pColWidth = (player->collisionWidth > 0 ? player->collisionWidth : player->width);
     double pCenterX = player->x + (player->width / 2.0);
@@ -112,26 +90,31 @@ inline void handleCollectibleCollisionsForMap(GameObject* player, int activeMapI
 
     for (int i = 0; i < count; i++) {
         GameObject* obj = &allObjects[i];
+        if (obj->mapID != activeMapID) continue;
+        if (obj->id != OBJ_COLLECTIBLE || obj->isCollected) continue;
 
-		// Ignore items on other maps
-		if (obj->mapID != activeMapID) continue;
+        double cLeft = obj->x;
+        double cRight = obj->x + obj->width;
+        double cBottom = obj->y;
+        double cTop = obj->y + obj->height;
 
-        if (obj->id == OBJ_COLLECTIBLE && !obj->isCollected) {
-            double cLeft = obj->x;
-            double cRight = obj->x + obj->width;
-            double cBottom = obj->y;
-            double cTop = obj->y + obj->height;
+        if (pLeft < cRight && pRight > cLeft && pBottom < cTop && pTop > cBottom) {
+            obj->isCollected = true;
 
-            if (pLeft < cRight && pRight > cLeft &&
-                pBottom < cTop && pTop > cBottom) {
-                obj->isCollected = true;
-                
-                // Add to the specific item type slot in global shared inventory
-                int type = obj->itemType;
-                if (type >= 0 && type < MAX_ITEM_TYPES) {
-                    globalInventory[type]++;
-                }
+            if (obj->itemType == 4)
+            {
+                // Sword ownership is player-specific, unlike the shared Bandage.
+                player->hasSword = true;
             }
+            else
+            {
+                int type = obj->itemType;
+                if (type >= 0 && type < MAX_ITEM_TYPES)
+                    globalInventory[type]++;
+            }
+
+            Audios::playCollectible();
+            return;
         }
     }
 }

@@ -35,6 +35,7 @@ namespace PlayerData
     static std::string teamName = "";
     static std::string player1Name = "";
     static std::string player2Name = "";
+    static int completionTimeSeconds = -1;
 
     static bool isInside(const Button& button, int mx, int my)
     {
@@ -79,6 +80,7 @@ namespace PlayerData
         teamName.clear();
         player1Name.clear();
         player2Name.clear();
+        completionTimeSeconds = -1;
         activeField = 0;
 
         for (int i = 0; i < 512; ++i)

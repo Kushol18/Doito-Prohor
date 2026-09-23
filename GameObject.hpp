@@ -2,7 +2,7 @@
 #define GAME_OBJECT_HPP
 
 
-#define MAX_OBJECTS 500
+#define MAX_OBJECTS 1000
 #define MAX_ITEM_TYPES 10
 
 
@@ -32,7 +32,7 @@ struct GameObject {
 	int targetIndex; // For all objects except OBJ_SWITCH this value can only be -1, but for OBJ_SWITCH: it stores the exact index of the specific OBJ_EFFECT it controls
 
 	bool isCollected;     
-    int itemType; // Distinguishes item categories ( 0 = Timeshard, 1 = Food)
+    int itemType; // 0=Timeshard, 1=Food, 2=Hourglass, 3=Bandage, 4=Sword
     int requiredItemType; // Which item type the switch demands
     int requiredAmount; // How many of that item type are required
     bool isCostPaid; // Tracks if the switch cost has been paid yet
@@ -41,6 +41,7 @@ struct GameObject {
 	int mapID; // Tracks which map this entity belongs to
 
 	bool isGuiding; // Flag for active tracking mode
+	bool hasSword; // Player-specific sword ownership
 	int miniGameVariant; // 0 = None, 1 = Standard Maze, 2 = One-Way Doors, 3 = Color Match
 
 	bool isHidden; // Track whether the switch is hidden until triggered by another switch
@@ -81,6 +82,7 @@ inline GameObject* createObject(ObjectType type, double x, double y, int imgInde
 		objects[objectCount].isTamed = true;
 		objects[objectCount].mapID = 1; 
 		objects[objectCount].isGuiding = false;
+		objects[objectCount].hasSword = false;
 		objects[objectCount].miniGameVariant = 0;
 		objects[objectCount].isHidden = false;
 		objects[objectCount].hp = 100;

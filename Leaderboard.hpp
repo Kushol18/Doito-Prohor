@@ -35,6 +35,9 @@ namespace Leaderboard
     static bool imagesLoaded = false;
     static bool savedPendingThisSession = false;
     static bool savedResultThisSession = false;
+    static std::string pendingTeamName = "";
+    static std::string pendingPlayer1Name = "";
+    static std::string pendingPlayer2Name = "";
     static std::vector<Result> results;
 
     static const char* dataFileName()
@@ -103,6 +106,9 @@ namespace Leaderboard
     {
         savedPendingThisSession = false;
         savedResultThisSession = false;
+        pendingTeamName.clear();
+        pendingPlayer1Name.clear();
+        pendingPlayer2Name.clear();
     }
 
     // Records the submitted player information when a new game actually
@@ -132,6 +138,78 @@ namespace Leaderboard
              << player2Name << "|-1\n";
 
         savedPendingThisSession = true;
+        pendingTeamName = teamName;
+        pendingPlayer1Name = player1Name;
+        pendingPlayer2Name = player2Name;
+    }
+
+    static bool updatePendingResult(int completionTimeSeconds)
+    {
+        if (!savedPendingThisSession || completionTimeSeconds < 0)
+        {
+            return false;
+        }
+
+        std::ifstream input(dataFileName());
+        if (!input)
+        {
+            return false;
+        }
+
+        std::vector<std::string> lines;
+        std::string line;
+        while (std::getline(input, line))
+        {
+            lines.push_back(line);
+        }
+        input.close();
+
+        // Replace the most recent pending record for this exact gameplay
+        // session instead of leaving the placeholder time (-1) in the file.
+        for (int i = (int)lines.size() - 1; i >= 0; --i)
+        {
+            std::stringstream stream(lines[i]);
+            std::string completed;
+            std::string team;
+            std::string player1;
+            std::string player2;
+            std::string oldTime;
+
+            if (!std::getline(stream, completed, '|')) continue;
+            if (!std::getline(stream, team, '|')) continue;
+            if (!std::getline(stream, player1, '|')) continue;
+            if (!std::getline(stream, player2, '|')) continue;
+            if (!std::getline(stream, oldTime, '|')) continue;
+
+            if (completed == "0" &&
+                team == pendingTeamName &&
+                player1 == pendingPlayer1Name &&
+                player2 == pendingPlayer2Name &&
+                oldTime == "-1")
+            {
+                std::stringstream replacement;
+                replacement << "1|"
+                            << pendingTeamName << "|"
+                            << pendingPlayer1Name << "|"
+                            << pendingPlayer2Name << "|"
+                            << completionTimeSeconds;
+                lines[i] = replacement.str();
+                break;
+            }
+        }
+
+        std::ofstream output(dataFileName(), std::ios::trunc);
+        if (!output)
+        {
+            return false;
+        }
+
+        for (size_t i = 0; i < lines.size(); ++i)
+        {
+            output << lines[i] << "\n";
+        }
+        output.close();
+        return true;
     }
 
     static void refresh()
@@ -167,7 +245,6 @@ namespace Leaderboard
             return;
         }
 
-        // No timer exists in the current project, so do not invent a value.
         if (completionTimeSeconds < 0)
         {
             return;
@@ -175,6 +252,18 @@ namespace Leaderboard
 
         ensureDataFile();
 
+        // The current session already has a player-data line with a -1
+        // placeholder. Replace that line with the real final time so the
+        // active session never leaves an obsolete -1 completion time behind.
+        if (updatePendingResult(completionTimeSeconds))
+        {
+            savedResultThisSession = true;
+            refresh();
+            return;
+        }
+
+        // Fallback for projects/data files created before pending-session
+        // persistence was added.
         std::ofstream file(dataFileName(), std::ios::app);
         if (!file)
         {
