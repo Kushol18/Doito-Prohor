@@ -1,8 +1,8 @@
 1|Trial 01|Kushol|Abrar|1000
-1|AUST No1 Couple|Johirul|Tasmia|178
-1|Potential Differance|Abrar|Abrer|150
+1|AUST No1 Couple|Johirul|Ta|406
+1|Potential Differance|Abrar|Abrer|650
 1|Bhondo Babaji|Sukrity|Musa|420
-1|Northpole Southpole|Protik SJ|29|260
+1|Northpole Southpole|26|29|500
 1|OGs|Rhino|Zebra|342
 0|T1|A|B|-1
 0|a|a|a|-1
@@ -181,8 +181,12 @@
 0|a|a|a|-1
 0|a|a|a|-1
 0|a|a|a|-1
-1|a|a|a|364
+1|Test|Kushol|Abrar|364
 0|a|aa|a|-1
 0|a|a|a|-1
 0|a|a|a|-1
 0|a|aa|aa|-1
+0|a|a|a|-1
+0|a|a|a|-1
+1|Test 02|Kushol|Protik|670
+0|a|a|a|-1
