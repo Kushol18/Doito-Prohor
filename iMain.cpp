@@ -6,6 +6,7 @@
 #include "PauseMenu.hpp"
 #include "PlayerAnimation.hpp"
 #include "Collectables_Count.hpp"
+#include "MiniMap.hpp"
 #include "PlayerData.hpp"
 #include "Leaderboard.hpp"
 #include "CompanionManager.hpp"
@@ -197,6 +198,7 @@ void iDraw(){
 
     //Title
     iShowImage(460, 770, 1000, 200, imgT);
+    MiniMap::draw(left, right);
 
     if(gameState == 0){
 
