@@ -115,7 +115,7 @@ void iResumeTimer(int index){
 void iShowBMP2(int x, int y, char filename[], int ignoreColor)
 {
     AUX_RGBImageRec *TextureImage;
-    TextureImage = auxDIBImageLoad(filename);
+    TextureImage = auxDIBImageLoadA(filename);
 
     int i,j;
     int width = TextureImage->sizeX;
