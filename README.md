@@ -67,10 +67,13 @@ Open the project in Visual Studio 2010
 ## Screenshots
 
 ### **Menu**
-<img src="Image/main_menu.png" width="200" height="200">
+<img src="Image/main_menu.png" width="450" height="300">
 
 ### **Character**
-<img src="Image/gf1.png" width="200" height="200">
+<img src="Image/gf1.png" width="200" height="200"> <img src="Image/rf1.png" width="200" height="200">
+
+### **Team Information**
+<img src="Image/player_data.png" width="450" height="300">
 
 ## Youtube Link
 [CSE 1200 Project: Doito Prohor - The Time that Steals](https://www.youtube.com/)
