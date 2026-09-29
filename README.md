@@ -70,7 +70,7 @@ Open the project in Visual Studio 2010
 <img src="Image/main_menu.png" width="200" height="200">
 
 ### **Character**
-<img src="./Doito-Prohor/Image/P1F.png" width="200" height="200">
+<img src="Image/gf1.png" width="200" height="200">
 
 ## Youtube Link
 [CSE 1200 Project: Doito Prohor - The Time that Steals](https://www.youtube.com/)
