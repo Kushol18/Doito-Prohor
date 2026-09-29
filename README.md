@@ -67,7 +67,7 @@ Open the project in Visual Studio 2010
 ## Screenshots
 
 ### **Menu**
-<img src="./Doito-Prohor/Image/main_menu.png" width="200" height="200">
+<img src="Image/main_menu.png" width="200" height="200">
 
 ### **Character**
 <img src="./Doito-Prohor/Image/P1F.png" width="200" height="200">
