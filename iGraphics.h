@@ -558,5 +558,12 @@ void iStart()
     glAlphaFunc(GL_GREATER,0.0f);
     glEnable(GL_ALPHA_TEST);
 
+    // PNG sprites in this project contain semi-transparent anti-aliased
+    // pixels around their edges/shadows. Alpha-test alone turns every
+    // non-zero alpha pixel into fully opaque pixels, exposing the sprite
+    // image background as a gray rectangle. Blend the RGBA texture instead.
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glutMainLoop();
 }
