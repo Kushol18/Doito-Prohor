@@ -76,7 +76,7 @@ Open the project in Visual Studio 2010
 <img src="Image/player_data.png" width="450" height="300">
 
 ## Youtube Link
-[CSE 1200 Project: Doito Prohor - The Time that Steals](https://www.youtube.com/)
+[CSE 1200 Project: Doito Prohor - The Time that Steals]([https://www.youtube.com/](https://youtu.be/YpW71lBM5VI?si=eab32umQ3uWmIj_i))
 
 ## Project Report
 [Project Report: Doito Prohor - The Time that Steals](https://drive.google.com/drive/u/1/my-drive)
