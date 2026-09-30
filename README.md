@@ -79,4 +79,4 @@ Open the project in Visual Studio 2010
 [CSE 1200 Project: Doito Prohor - The Time that Steals](https://youtu.be/YpW71lBM5VI?si=eab32umQ3uWmIj_i)
 
 ## Project Report
-[Project Report: Doito Prohor - The Time that Steals](https://drive.google.com/drive/u/1/my-drive)
+[Project Report: Doito Prohor - The Time that Steals](https://docs.google.com/document/d/19FhziaLRwnuRddgzxtI1o_eFMIiKUxkZ/edit?usp=sharing&ouid=106612815326634031834&rtpof=true&sd=true)
